@@ -68,7 +68,7 @@ project "Fluid-Material-Editor"
 
         defines
         {
-            "PE_PLATFORM_WINDOWS",
+            "FME_PLATFORM_WINDOWS",
         }
 
     filter "configurations:Debug"

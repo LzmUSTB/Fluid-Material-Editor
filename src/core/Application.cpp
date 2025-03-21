@@ -13,17 +13,40 @@ namespace FMEditor {
 		FME_INFO("Application initialized.");
 		s_Instance = this;
 
-		//m_Window = Scope<Window>(Window::Create());
+		m_Window = Scope<Window>(Window::Create());
 		//m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
-		//m_Window->SetVSync(false);
-		//m_ImGuiLayer = new ImGuiLayer();
-		//PushOverlay(m_ImGuiLayer);
+		m_ImguiLayer = new ImguiLayer();
+		PushOverlay(m_ImguiLayer);
+	}
+
+	void Application::PushLayer(Layer* layer)
+	{
+		m_LayerStack.PushLayer(layer);
+		layer->OnAttach();
+	}
+
+	void Application::PushOverlay(Layer* layer)
+	{
+		m_LayerStack.PushOverlay(layer);
+		layer->OnAttach();
 	}
 
 	void Application::Run()
 	{
 		while (m_Running) {
 
+			for (Layer* layer : m_LayerStack) {
+				layer->OnUpdate();
+			}
+
+			m_ImguiLayer->Begin();
+
+			for (Layer* layer : m_LayerStack) {
+				layer->OnImGuiRender();
+			}
+			m_ImguiLayer->End();
+
+			m_Window->OnUpdate();
 		}
 	}
 }

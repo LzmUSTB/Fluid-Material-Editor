@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Macros.h"
+#include "Window.h"
+#include "LayerStack.h"
+#include "imgui/ImguiLayer.h"
 
 namespace FMEditor {
 	class Application
@@ -11,15 +14,20 @@ namespace FMEditor {
 		void Run();
 
 		//void OnEvent(Event& e);
-		//void PushLayer(Layer* layer);
-		//void PushOverlay(Layer* layer);
-		//Window& GetWindow() { return *m_Window; }
+		void PushLayer(Layer* layer);
+		void PushOverlay(Layer* layer);
+		Window& GetWindow() { return *m_Window; }
+
+		static Application& Get() { return *s_Instance; }
+
 	private:
 		static Application* s_Instance;
+
 		bool m_Running = true;
-		//LayerStack m_LayerStack;
-		//ImGuiLayer* m_ImGuiLayer;
+		LayerStack m_LayerStack;
+		ImguiLayer* m_ImguiLayer;
 		float m_LastFrameTime = 0.0f;
+		Scope<Window> m_Window;
 	};
 }
 

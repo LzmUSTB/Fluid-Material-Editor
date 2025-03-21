@@ -7,6 +7,12 @@
     <Filter Include="core\imgui">
       <UniqueIdentifier>{38D00F51-2488-519E-8D8F-2AFA7966EC8E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="platform">
+      <UniqueIdentifier>{4A63C33C-3630-1E48-5F49-0CF04B7553D6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform\windows">
+      <UniqueIdentifier>{A44FC440-9048-E392-B97A-C817A5D2C29E}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\Application.h">
@@ -21,7 +27,15 @@
     <ClInclude Include="src\core\Macros.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\Window.h">
+      <Filter>core</Filter>
+    </ClInclude>
     <ClInclude Include="src\fmepch.h" />
+    <ClInclude Include="src\platform\windows\WindowsWindow.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\LayerStack.h" />
+    <ClInclude Include="src\core\imgui\ImguiLayer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\Application.cpp">
@@ -33,10 +47,18 @@
     <ClCompile Include="src\core\Log.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\Window.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
     <ClCompile Include="src\core\imgui\ImguiBuild.cpp">
       <Filter>core\imgui</Filter>
     </ClCompile>
     <ClCompile Include="src\fmepch.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\platform\windows\WindowsWindow.cpp">
+      <Filter>platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\LayerStack.cpp" />
+    <ClCompile Include="src\core\imgui\ImguiLayer.cpp" />
   </ItemGroup>
 </Project>
