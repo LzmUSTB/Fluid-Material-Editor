@@ -8,6 +8,7 @@ namespace FMEditor {
 	public:
 		Layer::Layer(const std::string& name) :m_DebugName(name) {}
 
+		// selectable
 		virtual void OnAttach() {}
 		virtual void OnDetach() {}
 		virtual void OnUpdate() {}
