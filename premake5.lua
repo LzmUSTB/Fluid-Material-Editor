@@ -14,7 +14,7 @@ IncludeDir = {}
 IncludeDir["glfw"] = "vendors/glfw/include"
 IncludeDir["glad"] = "vendors/glad/include"
 IncludeDir["ImGui"] = "vendors/imgui/include"
--- IncludeDir["glm"] = "GameEnginePractice/vendor/glm"
+IncludeDir["glm"] = "vendors/glm"
 
 include "vendors/glfw"
 include "vendors/glad"
@@ -35,8 +35,8 @@ project "Fluid-Material-Editor"
     files{
         "src/**.h",
         "src/**.cpp",
-        -- "%{prj.name}/vendor/glm/glm/**.hpp",
-        -- "%{prj.name}/vendor/glm/glm/**.inl",
+        "vendors/glm/**.hpp",
+        "vendors/glm/**.inl",
     }
 
     defines{
@@ -57,7 +57,7 @@ project "Fluid-Material-Editor"
         "%{IncludeDir.glfw}",
         "%{IncludeDir.glad}",
         "%{IncludeDir.ImGui}",
-        -- "%{IncludeDir.glm}"
+        "%{IncludeDir.glm}"
     }
 
     buildoptions {"/utf-8"}
