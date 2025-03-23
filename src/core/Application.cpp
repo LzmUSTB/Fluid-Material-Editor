@@ -7,10 +7,12 @@ namespace FMEditor {
 	Application::Application()
 	{
 		if (s_Instance != nullptr) {
-			FME_ERROR("Application already exist!");
-			assert(0);
+			FME_LOG_ERROR("[Application.cpp]: Application already exist!");
+			FME_DEBUG_LOG_ERROR("[Application.cpp]: Application already exist!");
+			FME_DEBUG_ASSERT(0);
 		}
-		FME_INFO("Application initialized.");
+		FME_DEBUG_LOG_INFO("[Application.cpp]: Application created.");
+		FME_LOG_INFO("[Application.cpp]: Application created.");
 		s_Instance = this;
 
 		m_Window = Scope<Window>(Window::Create());
@@ -22,12 +24,16 @@ namespace FMEditor {
 	{
 		m_LayerStack.PushLayer(layer);
 		layer->OnAttach();
+		FME_DEBUG_LOG_INFO("[Application.cpp]: Layer::{0} pushed.",layer->GetName());
+		FME_LOG_INFO("[Application.cpp]: Layer::%s pushed.", layer->GetName().c_str());
 	}
 
 	void Application::PushOverlay(Layer* layer)
 	{
 		m_LayerStack.PushOverlay(layer);
 		layer->OnAttach();
+		FME_DEBUG_LOG_INFO("[Application.cpp]: Layer::{0} pushed overlay.", layer->GetName());
+		FME_LOG_INFO("[Application.cpp]: Layer::%s pushed overlay.", layer->GetName().c_str());
 	}
 
 	void Application::Run()

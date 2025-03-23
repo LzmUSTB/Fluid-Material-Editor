@@ -1,6 +1,6 @@
 #include "fmepch.h"
 #include "WindowsWindow.h"
-#include "Core/Log.h"
+#include "core/Macros.h"
 
 namespace FMEditor {
 
@@ -25,8 +25,12 @@ namespace FMEditor {
 
 		if (!s_GLFWInitialized)
 		{
-			if (!glfwInit())
-				FME_ERROR("Could not initialize GLFW!");
+			if (!glfwInit()) {
+				FME_LOG_ERROR("[WindowsWindow.cpp]: Could not initialize GLFW!");
+				FME_DEBUG_LOG_ERROR("[WindowsWindow.cpp]: Could not initialize GLFW!");
+				FME_DEBUG_ASSERT(0);
+			}
+
 			s_GLFWInitialized = true;
 		}
 
@@ -34,16 +38,19 @@ namespace FMEditor {
 
 		if (m_Window == NULL)
 		{
-			FME_ERROR("Failed to create GLFW window");
+			FME_LOG_ERROR("[WindowsWindow.cpp]: Failed to create GLFW window.");
+			FME_DEBUG_LOG_ERROR("[WindowsWindow.cpp]: Failed to create GLFW window.");
 			glfwTerminate();
-			return;
+			FME_DEBUG_ASSERT(0);
 		}
 
 		glfwMakeContextCurrent(m_Window);
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
-			FME_ERROR("CFailed to initialize GLAD");
+			FME_LOG_ERROR("[WindowsWindow.cpp]: Failed to initialize GLAD");
+			FME_DEBUG_LOG_ERROR("[WindowsWindow.cpp]: Failed to initialize GLAD");
+			FME_DEBUG_ASSERT(0);
 		}
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
@@ -79,6 +86,9 @@ namespace FMEditor {
 			glfwSwapInterval(0);
 
 		m_Data.VSync = enabled;
+
+		FME_LOG_INFO("[WindowsWindow.cpp]: VSync: %s", enabled ? "ENABLED" : "DISABLED");
+		FME_DEBUG_LOG_INFO("[WindowsWindow.cpp]: VSync: {0}", enabled ? "ENABLED" : "DISABLED");
 	}
 
 	bool WindowsWindow::IsVSync() const
@@ -88,7 +98,7 @@ namespace FMEditor {
 
 	float WindowsWindow::GetFrameTime() const
 	{
-		return glfwGetTime();
+		return (float)glfwGetTime();
 	}
 
 }

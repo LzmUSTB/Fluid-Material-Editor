@@ -12,13 +12,11 @@ namespace FMEditor {
 	void ViewportLayer::OnAttach()
 	{
 		// TODO
-		FME_INFO("viewportLayer attached");
 	}
 
 	void ViewportLayer::OnDetach()
 	{
 		// TODO
-		FME_INFO("viewportLayer detached");
 	}
 
 	void ViewportLayer::OnUpdate()
@@ -36,7 +34,7 @@ namespace FMEditor {
 		m_WindowSize = ImGui::GetContentRegionAvail();
 		if (m_IsFirstFrame)
 		{
-			m_Renderer->Setup(m_WindowSize.x, m_WindowSize.y);
+			m_Renderer->Setup((int)m_WindowSize.x, (int)m_WindowSize.y);
 			m_TextureID = m_Renderer->GetRenderTexture();
 			m_IsFirstFrame = false;
 		}

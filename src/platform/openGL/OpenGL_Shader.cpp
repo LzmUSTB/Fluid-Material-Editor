@@ -31,7 +31,9 @@ namespace FMEditor {
 		}
 		catch (std::ifstream::failure e)
 		{
-			FME_ERROR("shader file not successfully read!");
+			FME_LOG_ERROR("[OpenGL_Shader.cpp]: read file error: %s %s", vertexPath, fragmentPath);
+			FME_DEBUG_LOG_ERROR("[OpenGL_Shader.cpp]: read file error: {0} {1}", vertexPath, fragmentPath);
+			FME_DEBUG_ASSERT(0);
 		}
 
 		const char* vShaderCode = vertexCode.c_str();
@@ -43,8 +45,11 @@ namespace FMEditor {
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertexShader, 1, &vShaderCode, NULL);
 		glCompileShader(vertexShader);
-		if (!CheckShaderError(vertexShader))
-			FME_ERROR("vertex shader : failed to compile");
+		if (!CheckShaderError(vertexShader)) {
+			FME_LOG_ERROR("[OpenGL_Shader.cpp]: failed to compile: %s", vertexPath);
+			FME_DEBUG_LOG_ERROR("[OpenGL_Shader.cpp]: failed to compile: {0}", vertexPath);
+			FME_DEBUG_ASSERT(0);
+		}
 
 		/////////////////////
 		// fragment shader //------------------------------------
@@ -52,8 +57,11 @@ namespace FMEditor {
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragmentShader, 1, &fShaderCode, NULL);
 		glCompileShader(fragmentShader);
-		if (!CheckShaderError(fragmentShader))
-			FME_ERROR("fragment shader : failed to compile");
+		if (!CheckShaderError(fragmentShader)) {
+			FME_LOG_ERROR("[OpenGL_Shader.cpp]: failed to compile: %s", fragmentPath);
+			FME_DEBUG_LOG_ERROR("[OpenGL_Shader.cpp]: failed to compile: {0}", fragmentPath);
+			FME_DEBUG_ASSERT(0);
+		}
 
 		//////////
 		// link //------------------------------------
@@ -63,11 +71,16 @@ namespace FMEditor {
 		glAttachShader(m_ID, fragmentShader);
 		glLinkProgram(m_ID);
 		if (!CheckProgramError(m_ID, vertexShader, fragmentShader)) {
-			FME_ERROR("shader : failed to link");
+			FME_LOG_ERROR("[OpenGL_Shader.cpp]: failed to link shader: %s %s", vertexPath, fragmentPath);
+			FME_DEBUG_LOG_ERROR("[OpenGL_Shader.cpp]: failed to link shader: {0} {1}", vertexPath, fragmentPath);
+			FME_DEBUG_ASSERT(0);
 		}
 
 		glDetachShader(m_ID, vertexShader);
 		glDetachShader(m_ID, fragmentShader);
+
+		FME_LOG_INFO("[OpenGL_Shader.cpp]: shader successfully created: %s %s", vertexPath, fragmentPath);
+		FME_DEBUG_LOG_INFO("[OpenGL_Shader.cpp]: shader successfully created: {0} {1}", vertexPath, fragmentPath);
 	}
 
 	OpenGL_Shader::~OpenGL_Shader()
@@ -99,7 +112,8 @@ namespace FMEditor {
 
 			glDeleteShader(shaderID);
 
-			FME_ERROR("{0}", infoLog.data());
+			FME_LOG_ERROR("[OpenGL_Shader.cpp]: shader compile error: %s", infoLog.data());
+			FME_DEBUG_LOG_ERROR("[OpenGL_Shader.cpp]: shader compile error: {0}", infoLog.data());
 			return false;
 		}
 		return true;
@@ -121,7 +135,8 @@ namespace FMEditor {
 			glDeleteShader(vertexID);
 			glDeleteShader(fragID);
 
-			FME_ERROR("{0}", infoLog.data());
+			FME_LOG_ERROR("[OpenGL_Shader.cpp]: shader link error: %s", infoLog.data());
+			FME_DEBUG_LOG_ERROR("[OpenGL_Shader.cpp]: shader link error: {0}", infoLog.data());
 			return false;
 		}
 		return true;

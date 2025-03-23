@@ -54,7 +54,7 @@
     <ClInclude Include="src\core\LayerStack.h">
       <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\Log.h">
+    <ClInclude Include="src\core\logger\Log.h">
       <Filter>src\core</Filter>
     </ClInclude>
     <ClInclude Include="src\core\Macros.h">
@@ -1338,6 +1338,7 @@
     <ClInclude Include="src\renderer\Renderer.h" />
     <ClInclude Include="src\renderer\ViewportLayer.h" />
     <ClInclude Include="src\platform\openGL\OpenGL_Renderer.h" />
+    <ClInclude Include="src\core\logger\LogLayer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\Application.cpp">
@@ -1349,7 +1350,7 @@
     <ClCompile Include="src\core\LayerStack.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\Log.cpp">
+    <ClCompile Include="src\core\logger\Log.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="src\core\Window.cpp">
@@ -1382,9 +1383,10 @@
     <ClCompile Include="src\renderer\Renderer.cpp" />
     <ClCompile Include="src\renderer\ViewportLayer.cpp" />
     <ClCompile Include="src\platform\openGL\OpenGL_Renderer.cpp" />
+    <ClCompile Include="src\core\logger\LogLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\test.vert" />
-    <None Include="assets\test.frag" />
+    <None Include="assets\shaders\test.vert" />
+    <None Include="assets\shaders\test.frag" />
   </ItemGroup>
 </Project>

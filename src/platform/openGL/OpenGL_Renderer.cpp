@@ -26,7 +26,9 @@ namespace FMEditor {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_Texture, 0);
 
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-			FME_ERROR("frame buffer is not complete!");
+			FME_LOG_ERROR("[OpenGL_Renderer.cpp]: frame buffer is not complete!");
+			FME_DEBUG_LOG_ERROR("[OpenGL_Renderer.cpp]: frame buffer is not complete!");
+			FME_DEBUG_ASSERT(0);
 		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

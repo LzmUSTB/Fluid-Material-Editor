@@ -11,7 +11,7 @@ namespace FMEditor {
 #ifdef FME_PLATFORM_WINDOWS
 		return CreateScope<WindowsWindow>(props);
 #else
-		FME_ERROR("FME only support Windows!");
+		FME_LOG_ERROR("FME only support Windows!");
 		return nullptr;
 #endif
 	}

@@ -139,12 +139,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\logger\LogLayer.h" />
     <ClInclude Include="src\platform\openGL\OpenGL_Renderer.h" />
     <ClInclude Include="src\renderer\Renderer.h" />
     <ClInclude Include="src\core\Application.h" />
     <ClInclude Include="src\core\Layer.h" />
     <ClInclude Include="src\core\LayerStack.h" />
-    <ClInclude Include="src\core\Log.h" />
+    <ClInclude Include="src\core\logger\Log.h" />
     <ClInclude Include="src\core\Macros.h" />
     <ClInclude Include="src\core\Window.h" />
     <ClInclude Include="src\core\imgui\ImguiLayer.h" />
@@ -574,12 +575,13 @@
     <ClInclude Include="src\renderer\ViewportLayer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\logger\LogLayer.cpp" />
     <ClCompile Include="src\platform\openGL\OpenGL_Renderer.cpp" />
     <ClCompile Include="src\renderer\Renderer.cpp" />
     <ClCompile Include="src\core\Application.cpp" />
     <ClCompile Include="src\core\Layer.cpp" />
     <ClCompile Include="src\core\LayerStack.cpp" />
-    <ClCompile Include="src\core\Log.cpp" />
+    <ClCompile Include="src\core\logger\Log.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\core\imgui\ImguiBuild.cpp" />
     <ClCompile Include="src\core\imgui\ImguiLayer.cpp" />
@@ -605,8 +607,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\test.frag" />
-    <None Include="assets\test.vert" />
+    <None Include="assets\shaders\test.frag" />
+    <None Include="assets\shaders\test.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

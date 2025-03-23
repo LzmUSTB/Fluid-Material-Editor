@@ -12,6 +12,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#ifdef PE_PLATFORM_WINDOWS
+#ifdef FME_PLATFORM_WINDOWS
 #include <Windows.h>
 #endif

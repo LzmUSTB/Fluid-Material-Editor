@@ -13,7 +13,6 @@ namespace FMEditor {
 
 		void Run();
 
-		//void OnEvent(Event& e);
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
 		Window& GetWindow() { return *m_Window; }
