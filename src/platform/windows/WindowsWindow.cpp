@@ -5,7 +5,6 @@
 namespace FMEditor {
 
 	static bool s_GLFWInitialized = false;
-	//static uint8_t s_GLFWWindowCount = 0;
 
 	WindowsWindow::WindowsWindow(const WindowProps& props)
 	{
@@ -24,8 +23,6 @@ namespace FMEditor {
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
 
-		//PE_CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
-
 		if (!s_GLFWInitialized)
 		{
 			if (!glfwInit())
@@ -41,8 +38,6 @@ namespace FMEditor {
 			glfwTerminate();
 			return;
 		}
-		//m_Context = new OpenGLContext(m_Window);
-		//m_Context->Init();
 
 		glfwMakeContextCurrent(m_Window);
 
@@ -54,24 +49,26 @@ namespace FMEditor {
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(false);
 
-		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
+		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
 			{
 				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				data.Width = width;
+				data.Height = height;
 			});
 	}
 
 	void WindowsWindow::Shutdown()
 	{
 		glfwDestroyWindow(m_Window);
+		glfwTerminate();
 	}
 
-	void WindowsWindow::OnUpdate()
+	bool WindowsWindow::OnUpdate()
 	{
 		glfwPollEvents();
 		glfwSwapBuffers(m_Window);
 
-		// TODO: temporary
-		glClear(GL_COLOR_BUFFER_BIT);
+		return !glfwWindowShouldClose(m_Window);
 	}
 
 	void WindowsWindow::SetVSync(bool enabled)
@@ -87,6 +84,11 @@ namespace FMEditor {
 	bool WindowsWindow::IsVSync() const
 	{
 		return m_Data.VSync;
+	}
+
+	float WindowsWindow::GetFrameTime() const
+	{
+		return glfwGetTime();
 	}
 
 }

@@ -14,7 +14,6 @@ namespace FMEditor {
 		s_Instance = this;
 
 		m_Window = Scope<Window>(Window::Create());
-		//m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 		m_ImguiLayer = new ImguiLayer();
 		PushOverlay(m_ImguiLayer);
 	}
@@ -33,20 +32,24 @@ namespace FMEditor {
 
 	void Application::Run()
 	{
-		while (m_Running) {
+		while (m_Window->OnUpdate()) {
 
+			// frame time //----------------------------------
+			float currentFrameTime = m_Window->GetFrameTime();
+			float deltaFrameTime = currentFrameTime - m_LastFrameTime;
+			m_LastFrameTime = currentFrameTime;
+
+			// layer update //----------------------------------
 			for (Layer* layer : m_LayerStack) {
 				layer->OnUpdate();
 			}
 
+			// imgui rendering //-------------------------------
 			m_ImguiLayer->Begin();
-
 			for (Layer* layer : m_LayerStack) {
-				layer->OnImGuiRender();
+				layer->OnImguiRender();
 			}
 			m_ImguiLayer->End();
-
-			m_Window->OnUpdate();
 		}
 	}
 }

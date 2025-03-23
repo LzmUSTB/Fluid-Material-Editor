@@ -23,7 +23,6 @@ namespace FMEditor {
 	private:
 		static Application* s_Instance;
 
-		bool m_Running = true;
 		LayerStack m_LayerStack;
 		ImguiLayer* m_ImguiLayer;
 		float m_LastFrameTime = 0.0f;

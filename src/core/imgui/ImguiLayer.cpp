@@ -54,7 +54,7 @@ namespace FMEditor {
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
-		ImGui_ImplOpenGL3_Init("#version 410");
+		ImGui_ImplOpenGL3_Init("#version 460");
 	}
 
 	void ImguiLayer::OnDetach()
@@ -79,6 +79,7 @@ namespace FMEditor {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 	}
 
 	void ImguiLayer::End()
@@ -91,6 +92,7 @@ namespace FMEditor {
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+		// backup current OpenGL context
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
 			GLFWwindow* backup_current_context = glfwGetCurrentContext();
@@ -138,7 +140,7 @@ namespace FMEditor {
 		return GImGui->ActiveId;
 	}
 
-	void ImguiLayer::OnImGuiRender()
+	void ImguiLayer::OnImguiRender()
 	{
 		static bool show = true;
 		ImGui::ShowDemoWindow(&show);
