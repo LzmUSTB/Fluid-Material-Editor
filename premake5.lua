@@ -15,6 +15,7 @@ IncludeDir["glfw"] = "vendors/glfw/include"
 IncludeDir["glad"] = "vendors/glad/include"
 IncludeDir["ImGui"] = "vendors/imgui/include"
 IncludeDir["glm"] = "vendors/glm"
+IncludeDir["entt"] = "vendors/entt"
 
 include "vendors/glfw"
 include "vendors/glad"
@@ -54,6 +55,7 @@ project "Fluid-Material-Editor"
     {
         "src",
         "vendors/spdlog/include",
+        "%{IncludeDir.entt}",
         "%{IncludeDir.glfw}",
         "%{IncludeDir.glad}",
         "%{IncludeDir.ImGui}",

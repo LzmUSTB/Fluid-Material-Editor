@@ -11,8 +11,11 @@ namespace FMEditor {
 		virtual void BeginScene() = 0;
 		virtual void EndScene() = 0;
 		virtual void Submit() = 0;
+		virtual void LoadShader(const char* vertexPath, const char* fragmentPath) = 0;
 		virtual unsigned int  GetRenderTexture() = 0;
-
+		virtual void LoadTexture(const char* texturePath) = 0;
+		virtual const char* Get_API_Version() = 0;
+		virtual const char* Get_Device_Name() = 0;
 		static Scope<Renderer> Create();
 	};
 

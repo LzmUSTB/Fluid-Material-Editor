@@ -10,6 +10,9 @@
     <Filter Include="src\core\imgui">
       <UniqueIdentifier>{EF6C1688-DB3A-0A8E-C4CE-7AB4B03BE6F2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\core\logger">
+      <UniqueIdentifier>{147A0792-8005-7556-8916-F84AF520D156}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\platform">
       <UniqueIdentifier>{41663D6D-2DC9-CC11-D64E-05C8C2909894}</UniqueIdentifier>
     </Filter>
@@ -21,6 +24,9 @@
     </Filter>
     <Filter Include="src\renderer">
       <UniqueIdentifier>{936D1A48-7FD0-A9EC-2856-E2A21498756F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\renderer\Camera">
+      <UniqueIdentifier>{AB9E9E5D-1700-7C6B-A06D-C21D0CCEB22A}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendors">
       <UniqueIdentifier>{86EAAF72-F2C9-2E0E-FBE1-B9E46740956F}</UniqueIdentifier>
@@ -54,9 +60,6 @@
     <ClInclude Include="src\core\LayerStack.h">
       <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\logger\Log.h">
-      <Filter>src\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\Macros.h">
       <Filter>src\core</Filter>
     </ClInclude>
@@ -66,8 +69,17 @@
     <ClInclude Include="src\core\imgui\ImguiLayer.h">
       <Filter>src\core\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\logger\Log.h">
+      <Filter>src\core\logger</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\logger\LogLayer.h">
+      <Filter>src\core\logger</Filter>
+    </ClInclude>
     <ClInclude Include="src\fmepch.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform\openGL\OpenGL_Renderer.h">
+      <Filter>src\platform\openGL</Filter>
     </ClInclude>
     <ClInclude Include="src\platform\openGL\OpenGL_Shader.h">
       <Filter>src\platform\openGL</Filter>
@@ -75,10 +87,19 @@
     <ClInclude Include="src\platform\windows\WindowsWindow.h">
       <Filter>src\platform\windows</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\Camera.h">
+    <ClInclude Include="src\renderer\Camera\Camera.h">
+      <Filter>src\renderer\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\Camera\FixedCamera.h">
+      <Filter>src\renderer\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\Renderer.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\Shader.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\ViewportLayer.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="vendors\glm\glm\common.hpp">
@@ -1335,10 +1356,7 @@
     <ClInclude Include="vendors\glm\glm\vector_relational.hpp">
       <Filter>vendors\glm\glm</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\Renderer.h" />
-    <ClInclude Include="src\renderer\ViewportLayer.h" />
-    <ClInclude Include="src\platform\openGL\OpenGL_Renderer.h" />
-    <ClInclude Include="src\core\logger\LogLayer.h" />
+    <ClInclude Include="src\core\ecs\Components.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\Application.cpp">
@@ -1350,9 +1368,6 @@
     <ClCompile Include="src\core\LayerStack.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\logger\Log.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\Window.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -1362,11 +1377,20 @@
     <ClCompile Include="src\core\imgui\ImguiLayer.cpp">
       <Filter>src\core\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\logger\Log.cpp">
+      <Filter>src\core\logger</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\logger\LogLayer.cpp">
+      <Filter>src\core\logger</Filter>
+    </ClCompile>
     <ClCompile Include="src\fmepch.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\openGL\OpenGL_Renderer.cpp">
+      <Filter>src\platform\openGL</Filter>
     </ClCompile>
     <ClCompile Include="src\platform\openGL\OpenGL_Shader.cpp">
       <Filter>src\platform\openGL</Filter>
@@ -1374,19 +1398,20 @@
     <ClCompile Include="src\platform\windows\WindowsWindow.cpp">
       <Filter>src\platform\windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\Camera.cpp">
+    <ClCompile Include="src\renderer\Camera\Camera.cpp">
+      <Filter>src\renderer\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\Camera\FixedCamera.cpp">
+      <Filter>src\renderer\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\Renderer.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\renderer\Shader.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\Renderer.cpp" />
-    <ClCompile Include="src\renderer\ViewportLayer.cpp" />
-    <ClCompile Include="src\platform\openGL\OpenGL_Renderer.cpp" />
-    <ClCompile Include="src\core\logger\LogLayer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="assets\shaders\test.vert" />
-    <None Include="assets\shaders\test.frag" />
+    <ClCompile Include="src\renderer\ViewportLayer.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

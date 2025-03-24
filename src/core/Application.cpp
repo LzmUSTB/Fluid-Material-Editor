@@ -24,7 +24,7 @@ namespace FMEditor {
 	{
 		m_LayerStack.PushLayer(layer);
 		layer->OnAttach();
-		FME_DEBUG_LOG_INFO("[Application.cpp]: Layer::{0} pushed.",layer->GetName());
+		FME_DEBUG_LOG_INFO("[Application.cpp]: Layer::{0} pushed.", layer->GetName());
 		FME_LOG_INFO("[Application.cpp]: Layer::%s pushed.", layer->GetName().c_str());
 	}
 
@@ -47,7 +47,7 @@ namespace FMEditor {
 
 			// layer update //----------------------------------
 			for (Layer* layer : m_LayerStack) {
-				layer->OnUpdate();
+				layer->OnUpdate(deltaFrameTime);
 			}
 
 			// imgui rendering //-------------------------------

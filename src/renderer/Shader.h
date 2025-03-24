@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Macros.h"
 
 namespace FMEditor {
 
@@ -9,7 +10,7 @@ namespace FMEditor {
 		virtual void Bind() = 0;
 		virtual void Unbind() = 0;
 
-		static Shader* Create(const char* vertexPath, const char* fragmentPath);
+		static Scope<Shader> Create(const char* vertexPath, const char* fragmentPath);
 	};
 
 }

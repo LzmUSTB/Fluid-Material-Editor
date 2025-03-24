@@ -15,7 +15,7 @@ namespace FMEditor {
 		return s_Instance;
 	}
 
-	LogLayer::LogLayer() :Layer("LogLayer") {
+	LogLayer::LogLayer() : Layer("LogLayer") {
 	}
 
 	void LogLayer::OnImguiRender()
