@@ -2,7 +2,6 @@
 #include "ImguiLayer.h"
 
 #include "imgui.h"
-#include <imgui_internal.h>
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -134,14 +133,12 @@ namespace FMEditor {
 		colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 	}
 
-	uint32_t ImguiLayer::GetActiveWidgetID() const
-	{
-		return GImGui->ActiveId;
-	}
+	//uint32_t ImguiLayer::GetActiveWidgetID() const
+	//{
+	//	return GImGui->ActiveId;
+	//}
 
 	void ImguiLayer::OnImguiRender()
 	{
-		static bool show = true;
-		ImGui::ShowDemoWindow(&show);
 	}
 }

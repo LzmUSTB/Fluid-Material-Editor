@@ -19,7 +19,7 @@ namespace FMEditor {
 			std::string msg;
 		};
 
-		~LogLayer() = default;
+		~LogLayer();
 
 		// from Layer
 		void OnAttach() override;

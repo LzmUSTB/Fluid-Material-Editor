@@ -2,7 +2,15 @@
 #include "OpenGL_Shader.h"
 #include "core/Macros.h"
 
+void checkOpenGLError() {
+	GLenum errorCode = glGetError();
+	if (errorCode != 0) {
+		assert(false); 
+	}
+}
+
 namespace FMEditor {
+
 
 	OpenGL_Shader::OpenGL_Shader(const char* vertexPath, const char* fragmentPath)
 	{
@@ -98,22 +106,34 @@ namespace FMEditor {
 		glUseProgram(0);
 	}
 
+	void OpenGL_Shader::setMat4(const char* name, const glm::mat4& mat) const
+	{
+		glUniformMatrix4fv(glGetUniformLocation(m_ID, name), 1, GL_FALSE, &mat[0][0]);
+	}
+
+	void OpenGL_Shader::setVec3(const char* name, float x, float y, float z) const
+	{
+		glUniform3f(glGetUniformLocation(m_ID, name), x, y, z);
+	}
+
+	void OpenGL_Shader::setVec4(const char* name, float x, float y, float z, float w) const
+	{
+		glUniform4f(glGetUniformLocation(m_ID, name), x, y, z, w);
+	}
+
 	bool OpenGL_Shader::CheckShaderError(GLint shaderID)
 	{
 		GLint isCompiled = 0;
-
+		glGetShaderiv(shaderID, GL_COMPILE_STATUS, &isCompiled);
 		if (isCompiled == GL_FALSE)
 		{
-			GLint maxLength = 0;
-			glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &maxLength);
-
-			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(shaderID, maxLength, &maxLength, &infoLog[0]);
+			GLchar infoLog[1024];
+			glGetShaderInfoLog(shaderID, 1024, NULL, infoLog);
 
 			glDeleteShader(shaderID);
 
-			FME_LOG_ERROR("[OpenGL_Shader.cpp]: shader compile error: %s", infoLog.data());
-			FME_DEBUG_LOG_ERROR("[OpenGL_Shader.cpp]: shader compile error: {0}", infoLog.data());
+			FME_LOG_ERROR("[OpenGL_Shader.cpp]: shader compile error: %s", infoLog);
+			FME_DEBUG_LOG_ERROR("[OpenGL_Shader.cpp]: shader compile error: {0}", infoLog);
 			return false;
 		}
 		return true;
@@ -125,18 +145,15 @@ namespace FMEditor {
 		glGetProgramiv(programID, GL_LINK_STATUS, (int*)&isLinked);
 		if (isLinked == GL_FALSE)
 		{
-			GLint maxLength = 0;
-			glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &maxLength);
-
-			std::vector<GLchar> infoLog(maxLength);
-			glGetProgramInfoLog(programID, maxLength, &maxLength, &infoLog[0]);
+			GLchar infoLog[1024];
+			glGetProgramInfoLog(programID, 1024, NULL, infoLog);
 
 			glDeleteProgram(programID);
 			glDeleteShader(vertexID);
 			glDeleteShader(fragID);
 
-			FME_LOG_ERROR("[OpenGL_Shader.cpp]: shader link error: %s", infoLog.data());
-			FME_DEBUG_LOG_ERROR("[OpenGL_Shader.cpp]: shader link error: {0}", infoLog.data());
+			FME_LOG_ERROR("[OpenGL_Shader.cpp]: shader link error: %s", infoLog);
+			FME_DEBUG_LOG_ERROR("[OpenGL_Shader.cpp]: shader link error: {0}", infoLog);
 			return false;
 		}
 		return true;

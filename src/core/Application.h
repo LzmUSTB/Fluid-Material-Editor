@@ -4,13 +4,14 @@
 #include "Window.h"
 #include "LayerStack.h"
 #include "imgui/ImguiLayer.h"
+#include "entt/entity/registry.hpp"
 
 namespace FMEditor {
 	class Application
 	{
 	public:
 		Application();
-
+		~Application();
 		void Run();
 
 		void PushLayer(Layer* layer);

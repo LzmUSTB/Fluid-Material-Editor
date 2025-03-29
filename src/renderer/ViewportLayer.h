@@ -2,6 +2,7 @@
 #include "core/Layer.h"
 #include "Renderer.h"
 #include "imgui.h"
+#include "entt/entity/registry.hpp"
 
 namespace FMEditor {
 	struct FrameRateCounter {
@@ -29,19 +30,29 @@ namespace FMEditor {
 	class ViewportLayer : public Layer
 	{
 	public:
-		ViewportLayer();
+		ViewportLayer(entt::registry& registry);
 		void OnAttach() override;
 		void OnDetach() override;
 		void OnUpdate(float deltaTime) override;
 		void OnImguiRender() override;
 	private:
+		void ShowNonStretchedImage(ImTextureID tex_id, int image_width, int image_height);
+		void ProcessCameraMove();
 		bool m_IsFirstFrame = true;
 		Scope<Renderer> m_Renderer;
 		ImVec2 m_WindowSize;
 		ImTextureID m_TextureID;
 		Scope<FrameRateCounter> m_Counter;
-		//imgui
+
+		// entity
+		entt::registry& m_Registry;
+		entt::entity m_Camera;
+
+		// imgui
 		bool m_ShowRendererInfo;
+		float io_MouseWheelOffset;
+		ImVec2 io_LastMousePos;
+		ImVec2 io_MousePosOffset;
 	};
 
 }

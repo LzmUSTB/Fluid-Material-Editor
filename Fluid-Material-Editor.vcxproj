@@ -139,12 +139,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\renderer\Camera\MoveCamera.h" />
+    <ClInclude Include="src\renderer\Camera\FixedFocusCamera.h" />
+    <ClInclude Include="src\renderer\Mesh.h" />
     <ClInclude Include="src\core\Application.h" />
-    <ClInclude Include="src\core\ecs\Components.h" />
     <ClInclude Include="src\core\Layer.h" />
     <ClInclude Include="src\core\LayerStack.h" />
     <ClInclude Include="src\core\Macros.h" />
     <ClInclude Include="src\core\Window.h" />
+    <ClInclude Include="src\core\ecs\Components.h" />
+    <ClInclude Include="src\core\ecs\Entity.h" />
+    <ClInclude Include="src\core\ecs\EntityLayer.h" />
     <ClInclude Include="src\core\imgui\ImguiLayer.h" />
     <ClInclude Include="src\core\logger\Log.h" />
     <ClInclude Include="src\core\logger\LogLayer.h" />
@@ -153,7 +158,6 @@
     <ClInclude Include="src\platform\openGL\OpenGL_Shader.h" />
     <ClInclude Include="src\platform\windows\WindowsWindow.h" />
     <ClInclude Include="src\renderer\Camera\Camera.h" />
-    <ClInclude Include="src\renderer\Camera\FixedCamera.h" />
     <ClInclude Include="src\renderer\Renderer.h" />
     <ClInclude Include="src\renderer\Shader.h" />
     <ClInclude Include="src\renderer\ViewportLayer.h" />
@@ -577,10 +581,15 @@
     <ClInclude Include="vendors\glm\glm\vector_relational.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\renderer\Camera\MoveCamera.cpp" />
+    <ClCompile Include="src\renderer\Camera\FixedFocusCamera.cpp" />
+    <ClCompile Include="src\renderer\Mesh.cpp" />
     <ClCompile Include="src\core\Application.cpp" />
     <ClCompile Include="src\core\Layer.cpp" />
     <ClCompile Include="src\core\LayerStack.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
+    <ClCompile Include="src\core\ecs\Entity.cpp" />
+    <ClCompile Include="src\core\ecs\EntityLayer.cpp" />
     <ClCompile Include="src\core\imgui\ImguiBuild.cpp" />
     <ClCompile Include="src\core\imgui\ImguiLayer.cpp" />
     <ClCompile Include="src\core\logger\Log.cpp" />
@@ -593,10 +602,14 @@
     <ClCompile Include="src\platform\openGL\OpenGL_Shader.cpp" />
     <ClCompile Include="src\platform\windows\WindowsWindow.cpp" />
     <ClCompile Include="src\renderer\Camera\Camera.cpp" />
-    <ClCompile Include="src\renderer\Camera\FixedCamera.cpp" />
     <ClCompile Include="src\renderer\Renderer.cpp" />
     <ClCompile Include="src\renderer\Shader.cpp" />
     <ClCompile Include="src\renderer\ViewportLayer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\fonts\OpenSans-Bold.ttf" />
+    <None Include="assets\shaders\test.frag" />
+    <None Include="assets\shaders\test.vert" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendors\glfw\glfw.vcxproj">

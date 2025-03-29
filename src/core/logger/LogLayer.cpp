@@ -97,8 +97,14 @@ namespace FMEditor {
 			m_ScrollToBottom = true;
 	}
 
+	LogLayer::~LogLayer()
+	{
+
+	}
+
 	void LogLayer::OnAttach()
 	{
+
 	}
 
 }

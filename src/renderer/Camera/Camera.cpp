@@ -1,32 +1,40 @@
 #include "fmepch.h"
 #include "Camera.h"
-#include <glm/gtc/matrix_transform.hpp>
+#include "core/Macros.h"
 
 namespace FMEditor {
 
-	Camera::Camera(glm::vec3 position, glm::vec3 direction)
+	Camera::Camera(float x, float y, float z, int width, int height)
 	{
-		m_Position = position;
-		m_Direction = direction;
+		m_Width = (float)width;
+		m_Height = (float)height;
+		m_Position = glm::vec3(x, y, z);
+		m_Zoom = 45.0;
 		m_WorldUp = glm::vec3(0.f, 1.f, 0.f);
 	}
 
-	void Camera::SetProjectionMatrix()
+	//void Camera::SetProjectionMatrix()
+	//{
+	//	m_Projection = glm::perspective(
+	//		glm::radians(m_Zoom),
+	//		m_Width / m_Height,
+	//		0.1f,
+	//		100.f
+	//	);
+	//}
+
+	void Camera::ProcessWindowResize(float width, float height)
 	{
-
-	}
-
-	void Camera::UpdateCameraStatus()
-	{
-		glm::vec3 front{};
-		front.x = cos(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
-		front.y = sin(glm::radians(m_Pitch));
-		front.z = sin(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
-
-		m_Front = glm::normalize(front);
-		m_Right = glm::normalize(glm::cross(m_Front, m_WorldUp));
-		m_Up = glm::normalize(glm::cross(m_Right, m_Front));
-		m_View = glm::lookAt(m_Position, m_Position + m_Front, m_Up);
+		if (m_Width != width || m_Height != height) {
+			m_Width = width;
+			m_Height = height;
+			m_Projection = glm::perspective(
+				glm::radians(m_Zoom),
+				m_Width / m_Height,
+				0.1f,
+				100.f
+			);
+		}
 	}
 
 	void Camera::ProcessMouseScroll(float yoffset)
@@ -36,6 +44,13 @@ namespace FMEditor {
 			m_Zoom = 1.0f;
 		if (m_Zoom > 45.0f)
 			m_Zoom = 45.0f;
+
+		m_Projection = glm::perspective(
+			glm::radians(m_Zoom),
+			m_Width / m_Height,
+			0.1f,
+			100.f
+		);
 	}
 }
 

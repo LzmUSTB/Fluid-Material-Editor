@@ -1,11 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="assets">
+      <UniqueIdentifier>{583885F2-44DA-AFC8-2D95-C31C19D63619}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\fonts">
+      <UniqueIdentifier>{B114ABAA-9D77-3A4F-46FD-7205323F06D2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\shaders">
+      <UniqueIdentifier>{51CD2FD9-3D9B-23DF-262F-9405129CFF43}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\core">
       <UniqueIdentifier>{C55F2ECF-B12C-89DA-DA45-7782C671BE68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\core\ecs">
+      <UniqueIdentifier>{EF3A4E7B-DB9D-DD1F-8423-16D67065A9A2}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\core\imgui">
       <UniqueIdentifier>{EF6C1688-DB3A-0A8E-C4CE-7AB4B03BE6F2}</UniqueIdentifier>
@@ -66,6 +78,15 @@
     <ClInclude Include="src\core\Window.h">
       <Filter>src\core</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\ecs\Components.h">
+      <Filter>src\core\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\ecs\Entity.h">
+      <Filter>src\core\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\ecs\EntityLayer.h">
+      <Filter>src\core\ecs</Filter>
+    </ClInclude>
     <ClInclude Include="src\core\imgui\ImguiLayer.h">
       <Filter>src\core\imgui</Filter>
     </ClInclude>
@@ -88,9 +109,6 @@
       <Filter>src\platform\windows</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\Camera\Camera.h">
-      <Filter>src\renderer\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\Camera\FixedCamera.h">
       <Filter>src\renderer\Camera</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\Renderer.h">
@@ -1356,7 +1374,9 @@
     <ClInclude Include="vendors\glm\glm\vector_relational.hpp">
       <Filter>vendors\glm\glm</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\ecs\Components.h" />
+    <ClInclude Include="src\renderer\Mesh.h" />
+    <ClInclude Include="src\renderer\Camera\FixedFocusCamera.h" />
+    <ClInclude Include="src\renderer\Camera\MoveCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\Application.cpp">
@@ -1370,6 +1390,12 @@
     </ClCompile>
     <ClCompile Include="src\core\Window.cpp">
       <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\ecs\Entity.cpp">
+      <Filter>src\core\ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\ecs\EntityLayer.cpp">
+      <Filter>src\core\ecs</Filter>
     </ClCompile>
     <ClCompile Include="src\core\imgui\ImguiBuild.cpp">
       <Filter>src\core\imgui</Filter>
@@ -1401,9 +1427,6 @@
     <ClCompile Include="src\renderer\Camera\Camera.cpp">
       <Filter>src\renderer\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\Camera\FixedCamera.cpp">
-      <Filter>src\renderer\Camera</Filter>
-    </ClCompile>
     <ClCompile Include="src\renderer\Renderer.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
@@ -1413,5 +1436,19 @@
     <ClCompile Include="src\renderer\ViewportLayer.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\renderer\Mesh.cpp" />
+    <ClCompile Include="src\renderer\Camera\FixedFocusCamera.cpp" />
+    <ClCompile Include="src\renderer\Camera\MoveCamera.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\fonts\OpenSans-Bold.ttf">
+      <Filter>assets\fonts</Filter>
+    </None>
+    <None Include="assets\shaders\test.frag">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\test.vert">
+      <Filter>assets\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

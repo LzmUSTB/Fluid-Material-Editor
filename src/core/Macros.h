@@ -1,8 +1,8 @@
 #pragma once
 #include <iostream>
 #include "logger/LogLayer.h"
-
 #include "logger/Log.h"
+
 #define FME_DEBUG_LOG_ERROR(...)	FMEditor::Log::GetLogger()->error(__VA_ARGS__)
 #define FME_DEBUG_LOG_WARN(...)		FMEditor::Log::GetLogger()->warn(__VA_ARGS__)
 #define FME_DEBUG_LOG_INFO(...)		FMEditor::Log::GetLogger()->info(__VA_ARGS__)
@@ -14,6 +14,16 @@
 #define FME_LOG_TRACE(...)	FMEditor::LogLayer::Get()->AddLog(FMEditor::LogLayer::LOG_TRACE,__VA_ARGS__)
 
 #define FME_DEBUG_ASSERT(x) assert(x)
+
+
+
+#ifdef _DEBUG
+#define GL_CALL(func) func; checkOpenGLError();
+#else
+#define GL_CALL(func) func;
+#endif
+
+void checkOpenGLError();
 
 namespace FMEditor {
 

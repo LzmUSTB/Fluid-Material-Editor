@@ -38,6 +38,7 @@ project "Fluid-Material-Editor"
         "src/**.cpp",
         "vendors/glm/**.hpp",
         "vendors/glm/**.inl",
+        "assets/**"
     }
 
     defines{

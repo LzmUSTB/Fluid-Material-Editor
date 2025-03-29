@@ -20,7 +20,7 @@ namespace FMEditor {
 
 		void SetDarkThemeColors();
 
-		uint32_t GetActiveWidgetID() const;
+		//uint32_t GetActiveWidgetID() const;
 	private:
 		bool m_BlockEvents = true;
 	};

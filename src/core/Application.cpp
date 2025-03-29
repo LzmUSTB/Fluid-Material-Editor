@@ -20,6 +20,10 @@ namespace FMEditor {
 		PushOverlay(m_ImguiLayer);
 	}
 
+	Application::~Application()
+	{
+	}
+
 	void Application::PushLayer(Layer* layer)
 	{
 		m_LayerStack.PushLayer(layer);
