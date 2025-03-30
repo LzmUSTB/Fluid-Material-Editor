@@ -60,7 +60,7 @@ project "Fluid-Material-Editor"
         "%{IncludeDir.glfw}",
         "%{IncludeDir.glad}",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.glm}"
+        "%{IncludeDir.glm}",
     }
 
     buildoptions {"/utf-8"}

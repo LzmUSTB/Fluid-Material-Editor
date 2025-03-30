@@ -3,6 +3,8 @@
 #include "Renderer.h"
 #include "imgui.h"
 #include "entt/entity/registry.hpp"
+#include "core/Macros.h"
+#include "renderer/Shader.h"
 
 namespace FMEditor {
 	struct FrameRateCounter {
@@ -36,8 +38,7 @@ namespace FMEditor {
 		void OnUpdate(float deltaTime) override;
 		void OnImguiRender() override;
 	private:
-		void ShowNonStretchedImage(ImTextureID tex_id, int image_width, int image_height);
-		void ProcessCameraMove();
+		void LoadResources();
 		bool m_IsFirstFrame = true;
 		Scope<Renderer> m_Renderer;
 		ImVec2 m_WindowSize;
@@ -48,11 +49,18 @@ namespace FMEditor {
 		entt::registry& m_Registry;
 		entt::entity m_Camera;
 
+
 		// imgui
+		void ShowNonStretchedImage(ImTextureID tex_id, int image_width, int image_height);
 		bool m_ShowRendererInfo;
 		float io_MouseWheelOffset;
 		ImVec2 io_LastMousePos;
 		ImVec2 io_MousePosOffset;
+
+		// shader & texture
+		Scope<Shader> m_skyboxShader;
+		Scope<Shader> m_testShader;
+		unsigned int m_skyboxTexture;
 	};
 
 }

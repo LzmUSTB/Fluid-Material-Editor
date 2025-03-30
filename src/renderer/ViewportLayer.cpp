@@ -1,7 +1,6 @@
 #include "fmepch.h"
 #include "ViewportLayer.h"
 #include "core/ecs/Components.h"
-#include "core/Macros.h"
 
 namespace FMEditor {
 	ViewportLayer::ViewportLayer(entt::registry& registry)
@@ -16,6 +15,8 @@ namespace FMEditor {
 	{
 		m_Registry.emplace<C_Infomation>(m_Camera, "Camera");
 		m_Registry.emplace<C_Camera>(m_Camera, 0.f, 0.f, 5.f, 1280, 720);
+
+		LoadResources();
 
 		m_Renderer->Setup(1280, 720);
 		m_TextureID = m_Renderer->GetRenderTexture();
@@ -52,17 +53,39 @@ namespace FMEditor {
 
 		glm::mat4 Projection = camera.c_Camera.GetProjectionMatrix();
 		glm::mat4 View = camera.c_Camera.GetViewMatrix();
+
 		// TODO: make frameBufferID dynamic
 		m_Renderer->BeginScene();
-		m_Renderer->Submit(View, Projection);
+
 		for (auto entity : objects) {
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-			m_Renderer->SetModelMatrix(model);
 			auto& object = objects.get<C_RenderObject>(entity);
-			m_Renderer->DrawMesh(object.c_mesh);
+
+			if (object.c_renderType == FME_SKYBOX) {
+				m_Renderer->EnableDepthMask(false);
+				m_skyboxShader->Bind();
+				m_skyboxShader->setMat4("Projection", Projection);
+				glm::mat4 view = glm::mat4(glm::mat3(View));
+				m_skyboxShader->setMat4("View", view);
+				m_Renderer->BindCubeMap(m_skyboxTexture);
+				m_skyboxShader->setInt("Skybox", 0);
+				m_Renderer->DrawMesh(object.c_mesh);
+				m_Renderer->EnableDepthMask(true);
+			}
+			if (object.c_renderType == FME_RIGIDBODY) {
+				m_testShader->Bind();
+				glm::mat4 Model = glm::mat4(1.0f);
+				Model = glm::translate(Model, glm::vec3(0.0f, 0.0f, 0.0f));
+				Model = glm::scale(Model, glm::vec3(1.0f, 1.0f, 1.0f));
+				m_testShader->setMat4("Projection", Projection);
+				m_testShader->setMat4("View", View);
+				m_testShader->setMat4("Model", Model);
+				m_Renderer->DrawMesh(object.c_mesh);
+			}
+			else {
+
+			}
 		}
+
 		m_Renderer->EndScene();
 	}
 
@@ -136,9 +159,16 @@ namespace FMEditor {
 		ImGui::SetCursorPos(cursor_pos);
 	}
 
-	void ViewportLayer::ProcessCameraMove()
+	void ViewportLayer::LoadResources()
 	{
-
+		m_skyboxShader = Shader::Create("assets/shaders/skybox.vert", "assets/shaders/skybox.frag");
+		m_testShader = Shader::Create("assets/shaders/test.vert", "assets/shaders/test.frag");
+		std::vector<std::string> faces = {
+			"assets/textures/cubemap/px.png", "assets/textures/cubemap/nx.png",
+			"assets/textures/cubemap/py.png", "assets/textures/cubemap/ny.png",
+			"assets/textures/cubemap/pz.png", "assets/textures/cubemap/nz.png"
+		};
+		m_skyboxTexture = m_Renderer->LoadCubeMap(faces);
 	}
 
 }

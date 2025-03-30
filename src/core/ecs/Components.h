@@ -7,9 +7,15 @@
 
 namespace FMEditor {
 
-	enum ENTITY_TYPE {
-		SHADER,
+	enum FME_ENTITY_TYPE {
+		ASSET,
 		OBJECT
+	};
+
+	enum FME_RENDER_TYPE {
+		FME_PARTICLE,
+		FME_SKYBOX,
+		FME_RIGIDBODY
 	};
 	//struct C_Transform {
 	//	glm::vec3 Translation = { 0.0f, 0.0f, 0.0f };
@@ -51,10 +57,11 @@ namespace FMEditor {
 
 	struct C_RenderObject {
 		Mesh c_mesh;
+		FME_RENDER_TYPE c_renderType;
 		//unsigned int c_ShaderID;
 		//C_RenderObject(const float* vertices, unsigned int vertices_size, const unsigned int* indices, unsigned int indices_size) :
 		//	c_mesh(vertices, vertices_size, indices, indices_size) {}
-		C_RenderObject(Mesh& mesh) :c_mesh(mesh) {}
+		C_RenderObject(FME_RENDER_TYPE renderType, Mesh& mesh) :c_renderType(renderType), c_mesh(mesh) {}
 	};
 
 	struct C_BoxCollider {
@@ -64,6 +71,10 @@ namespace FMEditor {
 	struct C_Infomation {
 		C_Infomation(std::string name) : c_Name(name) {}
 		std::string c_Name;
+	};
+
+	struct C_Texture {
+		unsigned int c_ID;
 	};
 
 }

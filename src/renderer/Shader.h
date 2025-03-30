@@ -14,6 +14,7 @@ namespace FMEditor {
 		virtual void setVec3(const char* name, float x, float y, float z) const = 0;
 		virtual void setVec4(const char* name, float x, float y, float z, float w) const = 0;
 		static Scope<Shader> Create(const char* vertexPath, const char* fragmentPath);
+		virtual void setInt(const char* name, int i) = 0;
 	};
 
 }

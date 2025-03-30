@@ -11,23 +11,23 @@ namespace FMEditor {
 		void Setup(int width, int height) override;
 		void BeginScene() override;
 		void EndScene() override;
-		void Submit(glm::mat4 view, glm::mat4 projection) override;
+		void BindShader(unsigned int shaderID) override;
 		unsigned int GetRenderTexture() override;
-		void LoadShader(const char* vertexPath, const char* fragmentPath) override;
-		void LoadTexture(const char* texturePath) override;
+		//void LoadTexture(const char* texturePath) override;
 		const char* Get_API_Version() override;
 		const char* Get_Device_Name() override;
 		void DrawMesh(Mesh& mesh) override;
 		void SetupMesh(Mesh& mesh) override;
-		void SetModelMatrix(glm::mat4 model) override;
+		void EnableDepthMask(bool enable) override;
+		unsigned int LoadCubeMap(std::vector<std::string> pathList) override;
+		void BindCubeMap(unsigned int textureID) override;
+
 	private:
-		OpenGL_Shader* m_Shader;
 		GLuint m_Framebuffer;
 		GLuint m_RenderTexture;
 		uint32_t m_Width;
 		uint32_t m_Height;
 		uint32_t m_ShaderIndex = 0;
-		//std::vector<OpenGL_Shader*> m_Shaders;
 	};
 }
 

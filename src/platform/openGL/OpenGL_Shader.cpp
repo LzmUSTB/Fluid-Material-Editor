@@ -5,7 +5,7 @@
 void checkOpenGLError() {
 	GLenum errorCode = glGetError();
 	if (errorCode != 0) {
-		assert(false); 
+		assert(false);
 	}
 }
 
@@ -119,6 +119,11 @@ namespace FMEditor {
 	void OpenGL_Shader::setVec4(const char* name, float x, float y, float z, float w) const
 	{
 		glUniform4f(glGetUniformLocation(m_ID, name), x, y, z, w);
+	}
+
+	void OpenGL_Shader::setInt(const char* name, int i)
+	{
+		glUniform1i(glGetUniformLocation(m_ID, name), i);
 	}
 
 	bool OpenGL_Shader::CheckShaderError(GLint shaderID)

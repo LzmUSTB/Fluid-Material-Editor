@@ -139,9 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\renderer\Camera\MoveCamera.h" />
-    <ClInclude Include="src\renderer\Camera\FixedFocusCamera.h" />
-    <ClInclude Include="src\renderer\Mesh.h" />
     <ClInclude Include="src\core\Application.h" />
     <ClInclude Include="src\core\Layer.h" />
     <ClInclude Include="src\core\LayerStack.h" />
@@ -153,11 +150,15 @@
     <ClInclude Include="src\core\imgui\ImguiLayer.h" />
     <ClInclude Include="src\core\logger\Log.h" />
     <ClInclude Include="src\core\logger\LogLayer.h" />
+    <ClInclude Include="src\core\stb_image.h" />
     <ClInclude Include="src\fmepch.h" />
     <ClInclude Include="src\platform\openGL\OpenGL_Renderer.h" />
     <ClInclude Include="src\platform\openGL\OpenGL_Shader.h" />
     <ClInclude Include="src\platform\windows\WindowsWindow.h" />
     <ClInclude Include="src\renderer\Camera\Camera.h" />
+    <ClInclude Include="src\renderer\Camera\FixedFocusCamera.h" />
+    <ClInclude Include="src\renderer\Camera\MoveCamera.h" />
+    <ClInclude Include="src\renderer\Mesh.h" />
     <ClInclude Include="src\renderer\Renderer.h" />
     <ClInclude Include="src\renderer\Shader.h" />
     <ClInclude Include="src\renderer\ViewportLayer.h" />
@@ -581,9 +582,6 @@
     <ClInclude Include="vendors\glm\glm\vector_relational.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\renderer\Camera\MoveCamera.cpp" />
-    <ClCompile Include="src\renderer\Camera\FixedFocusCamera.cpp" />
-    <ClCompile Include="src\renderer\Mesh.cpp" />
     <ClCompile Include="src\core\Application.cpp" />
     <ClCompile Include="src\core\Layer.cpp" />
     <ClCompile Include="src\core\LayerStack.cpp" />
@@ -594,6 +592,7 @@
     <ClCompile Include="src\core\imgui\ImguiLayer.cpp" />
     <ClCompile Include="src\core\logger\Log.cpp" />
     <ClCompile Include="src\core\logger\LogLayer.cpp" />
+    <ClCompile Include="src\core\stb_image.cpp" />
     <ClCompile Include="src\fmepch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -602,14 +601,28 @@
     <ClCompile Include="src\platform\openGL\OpenGL_Shader.cpp" />
     <ClCompile Include="src\platform\windows\WindowsWindow.cpp" />
     <ClCompile Include="src\renderer\Camera\Camera.cpp" />
+    <ClCompile Include="src\renderer\Camera\FixedFocusCamera.cpp" />
+    <ClCompile Include="src\renderer\Camera\MoveCamera.cpp" />
+    <ClCompile Include="src\renderer\Mesh.cpp" />
     <ClCompile Include="src\renderer\Renderer.cpp" />
     <ClCompile Include="src\renderer\Shader.cpp" />
     <ClCompile Include="src\renderer\ViewportLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\fonts\OpenSans-Bold.ttf" />
+    <None Include="assets\shaders\skybox.frag" />
+    <None Include="assets\shaders\skybox.vert" />
     <None Include="assets\shaders\test.frag" />
     <None Include="assets\shaders\test.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\textures\cubemap\nx.png" />
+    <Image Include="assets\textures\cubemap\ny.png" />
+    <Image Include="assets\textures\cubemap\nz.png" />
+    <Image Include="assets\textures\cubemap\px.png" />
+    <Image Include="assets\textures\cubemap\py.png" />
+    <Image Include="assets\textures\cubemap\pz.png" />
+    <Image Include="assets\textures\testCubeMap.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendors\glfw\glfw.vcxproj">

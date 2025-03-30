@@ -1,24 +1,19 @@
 #include "fmepch.h"
 #include <glad/glad.h>
 #include "OpenGL_Renderer.h"
+#include "core/stb_image.h"
 
 namespace FMEditor {
 	OpenGL_Renderer::~OpenGL_Renderer()
 	{
 		glDeleteFramebuffers(1, &m_Framebuffer);
 		glDeleteTextures(1, &m_RenderTexture);
-		//for (OpenGL_Shader* shader : m_Shaders) {
-		//	delete shader;
-		//}
-		delete m_Shader;
 	}
 
 	void OpenGL_Renderer::Setup(int width, int height)
 	{
 		m_Width = width;
 		m_Height = height;
-
-		LoadShader("assets/shaders/test.vert", "assets/shaders/test.frag");
 
 		glGenFramebuffers(1, &m_Framebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
@@ -47,37 +42,22 @@ namespace FMEditor {
 		glClearColor(1, 1, 1, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// TODO: temp
-		m_Shader->Bind();
 	}
 
 	void OpenGL_Renderer::EndScene()
 	{
 		// TODO: temp
-		m_Shader->Unbind();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void OpenGL_Renderer::Submit(glm::mat4 view, glm::mat4 projection)
+	void OpenGL_Renderer::BindShader(unsigned int shaderID)
 	{
-		m_Shader->setMat4("View", view);
-		m_Shader->setMat4("Projection", projection);
+		glUseProgram(shaderID);
 	}
 
 	unsigned int OpenGL_Renderer::GetRenderTexture()
 	{
 		return m_RenderTexture;
-	}
-
-	void OpenGL_Renderer::LoadShader(const char* vertexPath, const char* fragmentPath)
-	{
-		m_Shader = new OpenGL_Shader(vertexPath, fragmentPath);
-		//m_Shaders.emplace(m_Shaders.begin() + m_ShaderIndex, shader);
-		//m_ShaderIndex++;
-	}
-
-	void OpenGL_Renderer::LoadTexture(const char* cubeMapPath)
-	{
-
 	}
 
 	const char* OpenGL_Renderer::Get_API_Version()
@@ -91,12 +71,9 @@ namespace FMEditor {
 
 	void OpenGL_Renderer::DrawMesh(Mesh& mesh)
 	{
-		// draw mesh
-		GL_CALL(glBindVertexArray(mesh.VAO));
-		GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+		glBindVertexArray(mesh.VAO);
+		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
-		// always good practice to set everything back to defaults once configured.
-		glActiveTexture(GL_TEXTURE0);
 	}
 
 	void OpenGL_Renderer::SetupMesh(Mesh& mesh)
@@ -140,9 +117,47 @@ namespace FMEditor {
 
 		glBindVertexArray(0);
 	}
-	void OpenGL_Renderer::SetModelMatrix(glm::mat4 model)
+
+	void OpenGL_Renderer::EnableDepthMask(bool enable)
 	{
-		m_Shader->setMat4("Model", model);
+		glDepthMask(enable);
+	}
+
+	unsigned int OpenGL_Renderer::LoadCubeMap(std::vector<std::string> pathList)
+	{
+		GLuint textureID;
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+		int width, height, nrChannels;
+		stbi_set_flip_vertically_on_load(false);
+		for (GLuint i = 0; i < pathList.size(); i++) {
+			unsigned char* data = stbi_load(pathList[i].c_str(), &width, &height, &nrChannels, 3);
+			if (data) {
+				glTexImage2D(
+					GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+					0, GL_RGB, width, height, 0,
+					GL_RGB, GL_UNSIGNED_BYTE, data
+				);
+				stbi_image_free(data);
+			}
+			else {
+				FME_DEBUG_LOG_ERROR("Failed to load cubemap texture: {0}", pathList[i]);
+				FME_LOG_ERROR("Failed to load cubemap texture: %s", pathList[i]);
+				stbi_image_free(data);
+			}
+		}
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		return textureID;
+	}
+	void OpenGL_Renderer::BindCubeMap(unsigned int textureID)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 	}
 }
 

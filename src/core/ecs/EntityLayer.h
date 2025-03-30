@@ -10,7 +10,7 @@ namespace FMEditor {
 	public:
 		EntityLayer();
 		void OnImguiRender() override;
-
+		void LoadResources();
 
 		//entt::entity AddEntity(std::string name);
 		entt::registry& GetRegistry() { return m_Registry; }
