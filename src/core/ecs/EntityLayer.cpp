@@ -24,9 +24,9 @@ namespace FMEditor {
 
 	void EntityLayer::LoadResources()
 	{
-		// test entity
+		// particle model
 		//entt::entity entity = m_Registry.create();
-		//m_Registry.emplace<C_Infomation>(entity, "square");
+		//m_Registry.emplace<C_Infomation>(entity, "particle-quad");
 		//float vertices[] = {
 		//	0.5f, 0.5f, 0.0f,
 		//	0.5f, -0.5f, 0.0f,
@@ -38,12 +38,7 @@ namespace FMEditor {
 		//	1, 2, 3
 		//};
 		//Mesh mesh(vertices, sizeof(vertices), indices, sizeof(indices));
-		//m_Registry.emplace<C_RenderObject>(entity, FME_RIGIDBODY, mesh);
-
-		// particles
-		//for (int i = 0; i < 5000; i++) {
-		//	entt::entity particle = m_Registry.create();
-		//}
+		//m_Registry.emplace<C_RenderObject>(entity, FME_PARTICLE, mesh);
 
 		// skybox
 		entt::entity skybox = m_Registry.create();
@@ -83,6 +78,5 @@ namespace FMEditor {
 		Mesh skyboxMesh(skyboxVertices, sizeof(skyboxVertices), skyboxIndices, sizeof(skyboxIndices));
 		m_Registry.emplace<C_RenderObject>(skybox, FME_SKYBOX, skyboxMesh);
 	}
-
 
 }

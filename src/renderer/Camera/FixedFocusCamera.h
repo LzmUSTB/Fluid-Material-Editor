@@ -10,7 +10,7 @@ namespace FMEditor {
 	private:
 		glm::vec3 m_Focus;
 		glm::vec3 m_Front;
-		// Inherited via Camera
+
 		void UpdateCameraStatus() override;
 		void UpdateProjectionMatrix() override;
 		void UpdateViewMatrix() override;

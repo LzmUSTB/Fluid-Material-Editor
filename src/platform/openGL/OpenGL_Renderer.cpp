@@ -4,43 +4,41 @@
 #include "core/stb_image.h"
 
 namespace FMEditor {
-	OpenGL_Renderer::~OpenGL_Renderer()
+	OpenGL_Renderer::OpenGL_Renderer()
 	{
-		glDeleteFramebuffers(1, &m_Framebuffer);
-		glDeleteTextures(1, &m_RenderTexture);
+		float vertices[] = {
+			1.f, 1.f, 0.0f,
+			1.f, -1.f, 0.0f,
+			-1.f, -1.f, 0.0f,
+			-1.f, 1.f, 0.0f
+		};
+		unsigned int indices[] = {
+			0, 1, 3,
+			1, 2, 3
+		};
+		m_ScreenQuad = CreateScope<Mesh>(vertices, sizeof(vertices), indices, sizeof(indices));
+		SetupMesh(*m_ScreenQuad);
 	}
 
-	void OpenGL_Renderer::Setup(int width, int height)
+	OpenGL_Renderer::~OpenGL_Renderer()
+	{
+
+	}
+
+	void OpenGL_Renderer::Setup(uint32_t width, uint32_t height)
 	{
 		m_Width = width;
 		m_Height = height;
 
-		glGenFramebuffers(1, &m_Framebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
-
-		glGenTextures(1, &m_RenderTexture);
-		glBindTexture(GL_TEXTURE_2D, m_RenderTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_RenderTexture, 0);
-
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-			FME_LOG_ERROR("[OpenGL_Renderer.cpp]: frame buffer is not complete!");
-			FME_DEBUG_LOG_ERROR("[OpenGL_Renderer.cpp]: frame buffer is not complete!");
-			FME_DEBUG_ASSERT(0);
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//openGL init
+		glEnable(GL_DEPTH_TEST);
+		glClearDepth(1.0f);
+		glClearColor(0, 0, 0, 1);
+		glViewport(0, 0, m_Width, m_Height);
 	}
 
 	void OpenGL_Renderer::BeginScene()
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
-		glViewport(0, 0, m_Width, m_Height);
-		glClearColor(1, 1, 1, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// TODO: temp
 	}
 
@@ -50,20 +48,35 @@ namespace FMEditor {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void OpenGL_Renderer::BindShader(unsigned int shaderID)
+	void OpenGL_Renderer::BeginParticleRender()
+	{
+		glEnable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+		glBlendFunc(GL_ONE, GL_ONE);
+		glEnable(GL_PROGRAM_POINT_SIZE);
+	}
+
+	void OpenGL_Renderer::EndParticleRender()
+	{
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
+	}
+
+	void OpenGL_Renderer::BindShader(uint32_t shaderID)
 	{
 		glUseProgram(shaderID);
 	}
 
-	unsigned int OpenGL_Renderer::GetRenderTexture()
+	void OpenGL_Renderer::BindFramebuffer(uint32_t frameBufferID)
 	{
-		return m_RenderTexture;
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
 	}
 
 	const char* OpenGL_Renderer::Get_API_Version()
 	{
 		return (const char*)glGetString(GL_VERSION);
 	}
+
 	const char* OpenGL_Renderer::Get_Device_Name()
 	{
 		return (const char*)glGetString(GL_RENDERER);
@@ -74,6 +87,44 @@ namespace FMEditor {
 		glBindVertexArray(mesh.VAO);
 		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
+	}
+
+	void OpenGL_Renderer::DrawMeshInstanced(Mesh& mesh, uint32_t count)
+	{
+		glBindVertexArray(mesh.VAO);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, mesh.indices.size(), count);
+		glBindVertexArray(0);
+	}
+
+	void OpenGL_Renderer::DrawPoints(float pointSize, uint32_t count)
+	{
+		static bool once = true;
+		static uint32_t  temp;
+		if (once) {
+			glGenVertexArrays(1, &temp);
+			once = false;
+		}
+		glBindVertexArray(temp);
+		glPointSize(pointSize);
+		glDrawArraysInstanced(GL_POINTS, 0, 1, count);
+	}
+
+	void OpenGL_Renderer::DrawQuad()
+	{
+		glBindVertexArray(m_ScreenQuad->VAO);
+		glDrawElements(GL_TRIANGLES, m_ScreenQuad->indices.size(), GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+	}
+
+	void OpenGL_Renderer::EnableBlend(bool enable)
+	{
+		if (enable) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_ONE, GL_ONE);
+		}
+		else {
+			glDisable(GL_BLEND);
+		}
 	}
 
 	void OpenGL_Renderer::SetupMesh(Mesh& mesh)
@@ -120,7 +171,7 @@ namespace FMEditor {
 
 	void OpenGL_Renderer::EnableDepthMask(bool enable)
 	{
-		glDepthMask(enable);
+		glDepthMask(enable ? GL_TRUE : GL_FALSE);
 	}
 
 	unsigned int OpenGL_Renderer::LoadCubeMap(std::vector<std::string> pathList)
@@ -154,10 +205,12 @@ namespace FMEditor {
 
 		return textureID;
 	}
-	void OpenGL_Renderer::BindCubeMap(unsigned int textureID)
+
+	void OpenGL_Renderer::BindCubeMap(uint32_t textureID)
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 	}
+
 }
 

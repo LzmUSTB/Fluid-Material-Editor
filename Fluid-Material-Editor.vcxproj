@@ -139,6 +139,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\platform\openGL\OpenGL_Texture.h" />
+    <ClInclude Include="src\platform\openGL\OpenGL_FrameBuffer.h" />
+    <ClInclude Include="src\renderer\FrameBuffer.h" />
+    <ClInclude Include="src\platform\openGL\OpenGL_ComputeShader.h" />
+    <ClInclude Include="src\simulation\PhysicsLayer.h" />
     <ClInclude Include="src\core\Application.h" />
     <ClInclude Include="src\core\Layer.h" />
     <ClInclude Include="src\core\LayerStack.h" />
@@ -162,6 +167,7 @@
     <ClInclude Include="src\renderer\Renderer.h" />
     <ClInclude Include="src\renderer\Shader.h" />
     <ClInclude Include="src\renderer\ViewportLayer.h" />
+    <ClInclude Include="src\renderer\Texture.h" />
     <ClInclude Include="vendors\glm\glm\common.hpp" />
     <ClInclude Include="vendors\glm\glm\detail\_features.hpp" />
     <ClInclude Include="vendors\glm\glm\detail\_fixes.hpp" />
@@ -582,6 +588,11 @@
     <ClInclude Include="vendors\glm\glm\vector_relational.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\platform\openGL\OpenGL_Texture.cpp" />
+    <ClCompile Include="src\platform\openGL\OpenGL_FrameBuffer.cpp" />
+    <ClCompile Include="src\renderer\FrameBuffer.cpp" />
+    <ClCompile Include="src\platform\openGL\OpenGL_ComputeShader.cpp" />
+    <ClCompile Include="src\simulation\PhysicsLayer.cpp" />
     <ClCompile Include="src\core\Application.cpp" />
     <ClCompile Include="src\core\Layer.cpp" />
     <ClCompile Include="src\core\LayerStack.cpp" />
@@ -607,9 +618,28 @@
     <ClCompile Include="src\renderer\Renderer.cpp" />
     <ClCompile Include="src\renderer\Shader.cpp" />
     <ClCompile Include="src\renderer\ViewportLayer.cpp" />
+    <ClCompile Include="src\renderer\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\fonts\OpenSans-Bold.ttf" />
+    <None Include="assets\shaders\2d_fix_filter.frag" />
+    <None Include="assets\shaders\billboard.frag" />
+    <None Include="assets\shaders\billboard.vert" />
+    <None Include="assets\shaders\build_grid.comp" />
+    <None Include="assets\shaders\calculate_normal.frag" />
+    <None Include="assets\shaders\calculate_normal_from_thickness.frag" />
+    <None Include="assets\shaders\finalProcess.frag" />
+    <None Include="assets\shaders\find_neighbors.comp" />
+    <None Include="assets\shaders\gaussian_filter.frag" />
+    <None Include="assets\shaders\linear_depth.frag" />
+    <None Include="assets\shaders\narrow_range_filter.frag" />
+    <None Include="assets\shaders\particle_depth.frag" />
+    <None Include="assets\shaders\particle_thickness.vert" />
+    <None Include="assets\shaders\particle_thickness.frag" />
+    <None Include="assets\shaders\point.frag" />
+    <None Include="assets\shaders\point.vert" />
+    <None Include="assets\shaders\postprocess.vert" />
+    <None Include="assets\shaders\prefix_sum.comp" />
     <None Include="assets\shaders\skybox.frag" />
     <None Include="assets\shaders\skybox.vert" />
     <None Include="assets\shaders\test.frag" />

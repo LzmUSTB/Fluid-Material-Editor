@@ -19,6 +19,8 @@ namespace FMEditor {
 		void setVec3(const char* name, float x, float y, float z) const override;
 		void setVec4(const char* name, float x, float y, float z, float w) const override;
 		void setInt(const char* name, int i) override;
+		void setFloat(const char* name, float f) override;
+		void setBool(const char* name, bool b) override;
 	private:
 		bool CheckShaderError(GLint shaderID);
 		bool CheckProgramError(GLint programID, GLint vertexID, GLint fragID);

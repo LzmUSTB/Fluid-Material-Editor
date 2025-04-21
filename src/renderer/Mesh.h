@@ -24,17 +24,10 @@ namespace FMEditor {
 		//float m_Weights[MAX_BONE_INFLUENCE];
 	};
 
-	struct Texture {
-		unsigned int id;
-		std::string type;
-		std::string path;
-	};
-
 	struct Mesh
 	{
 		std::vector<float> vertices;   
 		std::vector<unsigned int> indices;
-		//std::vector<Texture>      textures;
 		unsigned int VAO, VBO, EBO;
 
 		Mesh(const float* verts, size_t vertSize, const unsigned int* inds, size_t indSize) 

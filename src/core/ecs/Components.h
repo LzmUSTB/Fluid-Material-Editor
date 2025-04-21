@@ -37,11 +37,52 @@ namespace FMEditor {
 	//	}
 	//};
 
-	// TODO: component for particles
-	struct C_Position {
-		glm::vec3 c_Position = { 0.0f, 0.0f, 0.0f };
-		C_Position(const glm::vec3& pos)
-			: c_Position(pos) {}
+	//struct C_Position {
+	//	glm::vec3 c_Position;
+
+	//	C_Position(float x, float y, float z)
+	//		: c_Position(x, y, z) {}
+	//};
+
+	//struct C_Velocity {
+	//	glm::vec3 c_Velocity;
+	//	C_Velocity() :c_Velocity(0, 0, 0) {}
+	//};
+
+	//struct C_Acceleration {
+	//	glm::vec3 c_Acceleration;
+	//	C_Acceleration() :c_Acceleration(0, 0, 0) {}
+	//};
+
+	//struct C_ParticleStatus {
+	//	// x: mass
+	//	// y: density
+	//	// z: pressure
+	//	glm::vec3 c_ParticleStatus;
+	//	C_ParticleStatus() :c_ParticleStatus(0, 0, 0) {}
+	//};
+
+	struct C_ParticleGroup {
+		unsigned int c_particleCount;
+		std::vector<glm::vec4>c_PositionList;
+		std::vector<glm::vec4>c_VelocityList;
+		std::vector<glm::vec4>c_AccelerationList;
+
+		// x: mass
+		// y: density
+		// z: pressure
+		// w: none
+		std::vector<glm::vec4>c_StatusList;
+		C_ParticleGroup(unsigned int count) :
+			c_particleCount(count),
+			c_PositionList(count),
+			c_VelocityList(count),
+			c_AccelerationList(count),
+			c_StatusList(count) {}
+		void SetPosition(unsigned int index, float x, float y, float z) {
+			//c_PositionList.emplace(c_PositionList.begin() + index, glm::vec3(x, y, z));
+			c_PositionList[index] = glm::vec4(x, y, z, 1);
+		}
 	};
 
 	struct C_Camera {
@@ -56,12 +97,12 @@ namespace FMEditor {
 	};
 
 	struct C_RenderObject {
-		Mesh c_mesh;
-		FME_RENDER_TYPE c_renderType;
+		Mesh c_Mesh;
+		FME_RENDER_TYPE c_RenderType;
 		//unsigned int c_ShaderID;
 		//C_RenderObject(const float* vertices, unsigned int vertices_size, const unsigned int* indices, unsigned int indices_size) :
-		//	c_mesh(vertices, vertices_size, indices, indices_size) {}
-		C_RenderObject(FME_RENDER_TYPE renderType, Mesh& mesh) :c_renderType(renderType), c_mesh(mesh) {}
+		//	c_Mesh(vertices, vertices_size, indices, indices_size) {}
+		C_RenderObject(FME_RENDER_TYPE renderType, Mesh& mesh) :c_RenderType(renderType), c_Mesh(mesh) {}
 	};
 
 	struct C_BoxCollider {
@@ -71,10 +112,6 @@ namespace FMEditor {
 	struct C_Infomation {
 		C_Infomation(std::string name) : c_Name(name) {}
 		std::string c_Name;
-	};
-
-	struct C_Texture {
-		unsigned int c_ID;
 	};
 
 }

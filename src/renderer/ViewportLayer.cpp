@@ -9,24 +9,25 @@ namespace FMEditor {
 		m_Renderer = Renderer::Create();
 		m_Counter = CreateScope<FrameRateCounter>(1.0f);
 		m_Camera = m_Registry.create();
+		m_ResolutionHeight = 720;
+		m_ResolutionWidth = 1280;
 	}
 
 	void ViewportLayer::OnAttach()
 	{
 		m_Registry.emplace<C_Infomation>(m_Camera, "Camera");
-		m_Registry.emplace<C_Camera>(m_Camera, 0.f, 0.f, 5.f, 1280, 720);
+		m_Registry.emplace<C_Camera>(m_Camera, 0.f, 0.f, 5.f, m_ResolutionWidth, m_ResolutionHeight);
 
 		LoadResources();
 
-		m_Renderer->Setup(1280, 720);
-		m_TextureID = m_Renderer->GetRenderTexture();
+		m_Renderer->Setup(m_ResolutionWidth, m_ResolutionHeight);
 
 		auto objects = m_Registry.view<C_RenderObject>();
 		for (auto entity : objects) {
 
 			auto& object = objects.get<C_RenderObject>(entity);
 
-			m_Renderer->SetupMesh(object.c_mesh);
+			m_Renderer->SetupMesh(object.c_Mesh);
 		}
 	}
 
@@ -54,13 +55,12 @@ namespace FMEditor {
 		glm::mat4 Projection = camera.c_Camera.GetProjectionMatrix();
 		glm::mat4 View = camera.c_Camera.GetViewMatrix();
 
-		// TODO: make frameBufferID dynamic
-		m_Renderer->BeginScene();
-
+		m_Renderer->EnableDepthMask(true);
+		m_SceneFrameBuffer->Bind();
 		for (auto entity : objects) {
 			auto& object = objects.get<C_RenderObject>(entity);
 
-			if (object.c_renderType == FME_SKYBOX) {
+			if (object.c_RenderType == FME_SKYBOX) {
 				m_Renderer->EnableDepthMask(false);
 				m_skyboxShader->Bind();
 				m_skyboxShader->setMat4("Projection", Projection);
@@ -68,10 +68,11 @@ namespace FMEditor {
 				m_skyboxShader->setMat4("View", view);
 				m_Renderer->BindCubeMap(m_skyboxTexture);
 				m_skyboxShader->setInt("Skybox", 0);
-				m_Renderer->DrawMesh(object.c_mesh);
-				m_Renderer->EnableDepthMask(true);
+				m_Renderer->DrawMesh(object.c_Mesh);
+
 			}
-			if (object.c_renderType == FME_RIGIDBODY) {
+			else if (object.c_RenderType == FME_RIGIDBODY) {
+				m_Renderer->EnableDepthMask(true);
 				m_testShader->Bind();
 				glm::mat4 Model = glm::mat4(1.0f);
 				Model = glm::translate(Model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -79,14 +80,72 @@ namespace FMEditor {
 				m_testShader->setMat4("Projection", Projection);
 				m_testShader->setMat4("View", View);
 				m_testShader->setMat4("Model", Model);
-				m_Renderer->DrawMesh(object.c_mesh);
+				m_Renderer->DrawMesh(object.c_Mesh);
+			}
+			else if (object.c_RenderType == FME_PARTICLE) {
+				//for (auto entity : particleGroups) {
+				//	auto& particle = particleGroups.get<C_ParticleGroup>(entity);
+				//	glm::mat4 Model = glm::mat4(1.0f);
+				//	//Model = glm::translate(Model, particle.c_PositionList);
+				//	Model = glm::scale(Model, glm::vec3(0.1f, 0.1f, 0.1f));
+				//	m_billboardShader->setMat4("Model", Model);
+				//	m_billboardShader->setMat4("Model_i", glm::inverse(Model));
+				//	m_Renderer->DrawMesh(object.c_Mesh);
+				//}
 			}
 			else {
-
+				auto& info = m_Registry.get<C_Infomation>(entity);
+				FME_DEBUG_LOG_WARN("[ViewportLayer.cpp]Wrong c_RenderType in {0}", info.c_Name);
 			}
 		}
+		m_SceneFrameBuffer->Unbind();
 
-		m_Renderer->EndScene();
+		auto& particleGroups = m_Registry.view<C_ParticleGroup>();
+		for (auto& entity : particleGroups) {
+			auto& particleGroup = particleGroups.get<C_ParticleGroup>(entity);
+			// render particle thickness
+			m_Renderer->EnableDepthMask(false);
+			m_PingpongFBO_Thickness[0]->Bind();
+			m_Renderer->BeginParticleRender();
+			m_particleThicknessShader->Bind();
+			m_particleThicknessShader->setMat4("Projection", Projection);
+			m_particleThicknessShader->setMat4("View", View);
+			m_particleThicknessShader->setFloat("ParticleRadius", m_particleSize);
+			float coefficient = camera.c_Camera.GetHeight() / (2.f * glm::tan(camera.c_Camera.GetFovRadians() / 2));
+			m_particleThicknessShader->setFloat("R_screen_coefficient", coefficient);
+			m_Renderer->DrawPoints(m_particleSize, particleGroup.c_particleCount);
+			m_Renderer->EndParticleRender();
+			m_PingpongFBO_Thickness[0]->Unbind();
+
+			// render particle depth
+			m_Renderer->EnableDepthMask(true);
+			m_particleDepthShader->Bind();
+			m_particleDepthShader->setMat4("Projection", Projection);
+			m_particleDepthShader->setMat4("View", View);
+			m_particleDepthShader->setFloat("ParticleRadius", m_particleSize);
+			m_particleDepthShader->setFloat("Near", camera.c_Camera.GetNear());
+			m_particleDepthShader->setFloat("Far", camera.c_Camera.GetFar());
+			m_particleDepthShader->setFloat("R_screen_coefficient", coefficient);
+			m_PingpongFBO_Depth[0]->Bind();
+			m_Renderer->DrawPoints(m_particleSize, particleGroup.c_particleCount);
+			m_Renderer->EndParticleRender();
+			m_PingpongFBO_Depth[0]->Unbind();
+		}
+
+		m_Renderer->EnableDepthMask(false);
+		ApplyFilter();
+
+		// calculate normal
+		m_NormalMapBuffer->Bind();
+		m_normalMapShader->Bind();
+		m_normalMapShader->setFloat("near", camera.c_Camera.GetNear());
+		m_normalMapShader->setFloat("fov", camera.c_Camera.GetFovRadians());
+		m_normalMapShader->setFloat("aspectRatio", camera.c_Camera.GetAspectRatio());
+		m_PingpongTexture_Depth[0]->Bind();
+		m_Renderer->DrawQuad();
+		m_NormalMapBuffer->Unbind();
+
+		FinalProcess();
 	}
 
 	void ViewportLayer::OnImguiRender()
@@ -110,13 +169,8 @@ namespace FMEditor {
 			io_LastMousePos = io.MousePos;
 			io_MousePosOffset = ImVec2(0, 0);
 		}
-		//if (m_IsFirstFrame)
-		//{
-		//	m_Renderer->Setup((int)m_WindowSize.x, (int)m_WindowSize.y);
-		//	m_TextureID = m_Renderer->GetRenderTexture();
-		//	m_IsFirstFrame = false;
-		//}
-		ShowNonStretchedImage(m_TextureID, 1280, 720);
+
+		ShowNonStretchedImage(SwitchImage(m_textureShown), m_ResolutionWidth, m_ResolutionHeight);
 		ImGui::End();
 
 		ImGuiWindowFlags window_flags =
@@ -133,6 +187,23 @@ namespace FMEditor {
 			ImGui::Text("Device: %s", m_Renderer->Get_Device_Name());
 			ImGui::Text("FrameRate: %.f FPS", m_Counter->m_FPS);
 		}
+		ImGui::End();
+
+		ImGui::Begin("Camera Info");
+		auto& camera = m_Registry.get<C_Camera>(m_Camera);
+		glm::vec3 cameraPos = camera.c_Camera.GetPosition();
+		ImGui::Text("CameraPosition: ( %.2f, %.2f, %.2f )", cameraPos.x, cameraPos.y, cameraPos.z);
+
+		ImGui::End();
+
+		ImGui::Begin("Render Option");
+		ImGui::SliderFloat("particle size", &m_particleSize, 0.0f, 0.05f, "%.3f");
+		ImGui::SliderFloat("filter offset", &m_filterOffset, 0.0f, 100.f, "%.3f");
+		ImGui::SliderFloat("filter range", &m_filterRange, 0.0f, 100.f, "%.3f");
+		ImGui::SliderFloat("absorption", &m_absorption, 0.0f, 1.f, "%.3f");
+		ImGui::SliderFloat("reract offset", &refractOffsetAmount, 0.0f, 1.f, "%.3f");
+		ImGui::SliderInt("filter iterations", &m_filterIterations, 0, 10);
+		ImGui::SliderInt("render result", &m_textureShown, 0, 6);
 		ImGui::End();
 	}
 
@@ -163,12 +234,133 @@ namespace FMEditor {
 	{
 		m_skyboxShader = Shader::Create("assets/shaders/skybox.vert", "assets/shaders/skybox.frag");
 		m_testShader = Shader::Create("assets/shaders/test.vert", "assets/shaders/test.frag");
+		m_billboardShader = Shader::Create("assets/shaders/billboard.vert", "assets/shaders/billboard.frag");
+		m_pointShader = Shader::Create("assets/shaders/point.vert", "assets/shaders/point.frag");
+		m_particleThicknessShader = Shader::Create("assets/shaders/particle_thickness.vert", "assets/shaders/particle_thickness.frag");
+		m_particleDepthShader = Shader::Create("assets/shaders/particle_thickness.vert", "assets/shaders/particle_depth.frag");
+		m_narrowRangeFilterShader = Shader::Create("assets/shaders/postprocess.vert", "assets/shaders/narrow_range_filter.frag");
+		m_gaussianFilterShader = Shader::Create("assets/shaders/postprocess.vert", "assets/shaders/gaussian_filter.frag");
+		m_normalMapShader = Shader::Create("assets/shaders/postprocess.vert", "assets/shaders/calculate_normal.frag");
+		m_finalProcessShader = Shader::Create("assets/shaders/postprocess.vert", "assets/shaders/finalProcess.frag");
+		m_linearDepthShader = Shader::Create("assets/shaders/postprocess.vert", "assets/shaders/linear_depth.frag");
+		m_2dFilterShader = Shader::Create("assets/shaders/postprocess.vert", "assets/shaders/2d_fix_filter.frag");
+
 		std::vector<std::string> faces = {
 			"assets/textures/cubemap/px.png", "assets/textures/cubemap/nx.png",
 			"assets/textures/cubemap/py.png", "assets/textures/cubemap/ny.png",
 			"assets/textures/cubemap/pz.png", "assets/textures/cubemap/nz.png"
 		};
 		m_skyboxTexture = m_Renderer->LoadCubeMap(faces);
+
+		m_MainFramebuffer = FrameBuffer::Create();
+		m_RenderTexture = Texture::Create(m_ResolutionWidth, m_ResolutionHeight, true, false);
+		m_MainFramebuffer->AttachTexture(m_RenderTexture->GetID());
+
+		m_SceneFrameBuffer = FrameBuffer::Create();
+		m_SceneTexture = Texture::Create(m_ResolutionWidth, m_ResolutionHeight, true, false);
+		m_SceneFrameBuffer->AttachTexture(m_SceneTexture->GetID());
+		m_SceneFrameBuffer->CreateDepthBuffer(m_ResolutionWidth, m_ResolutionHeight);
+
+		m_NormalMapBuffer = FrameBuffer::Create();
+		m_NormalMapTexture = Texture::Create(m_ResolutionWidth, m_ResolutionHeight, true, true);
+		m_NormalMapBuffer->AttachTexture(m_NormalMapTexture->GetID());
+
+		for (int i = 0; i < 2; i++) {
+			m_PingpongFBO_Thickness[i] = FrameBuffer::Create();
+			m_PingpongFBO_Depth[i] = FrameBuffer::Create();
+
+			m_PingpongTexture_Thickness[i] = Texture::Create(m_ResolutionWidth, m_ResolutionHeight, false, true);
+			m_PingpongTexture_Depth[i] = Texture::Create(m_ResolutionWidth, m_ResolutionHeight, false, true);
+
+			m_PingpongFBO_Thickness[i]->AttachTexture(m_PingpongTexture_Thickness[i]->GetID());
+			m_PingpongFBO_Depth[i]->AttachTexture(m_PingpongTexture_Depth[i]->GetID());
+		}
+		m_PingpongFBO_Depth[0]->CreateDepthBuffer(m_ResolutionWidth, m_ResolutionHeight);
 	}
 
+	uint32_t ViewportLayer::SwitchImage(uint32_t option)
+	{
+		switch (option) {
+		case 0:
+			return m_RenderTexture->GetID();
+		case 1:
+			return m_PingpongTexture_Thickness[0]->GetID();
+		case 2:
+			return m_PingpongTexture_Depth[0]->GetID();
+		case 3:
+			return m_NormalMapTexture->GetID();
+		case 4:
+			return m_SceneTexture->GetID();
+		default:
+			return m_RenderTexture->GetID();
+		}
+	}
+
+	void ViewportLayer::ApplyFilter()
+	{
+		m_PingpongFBO_Thickness[1]->ClearBuffer();
+		m_PingpongFBO_Depth[1]->ClearBuffer();
+
+		for (int i = 0; i < m_filterIterations; i++) {
+			m_gaussianFilterShader->Bind();
+			// horizontal filter
+			m_gaussianFilterShader->setBool("Horizontal", true);
+
+			m_PingpongFBO_Thickness[1]->Bind(false);
+			m_PingpongTexture_Thickness[0]->Bind();
+			m_Renderer->DrawQuad();
+			m_PingpongFBO_Thickness[1]->Unbind();
+
+			m_PingpongFBO_Depth[1]->Bind(false);
+			m_PingpongTexture_Depth[0]->Bind();
+			m_Renderer->DrawQuad();
+			m_PingpongFBO_Depth[1]->Unbind();
+
+			// vertical filter
+			m_gaussianFilterShader->setBool("Horizontal", false);
+
+			m_PingpongFBO_Thickness[0]->Bind(false);
+			m_PingpongTexture_Thickness[1]->Bind();
+			m_Renderer->DrawQuad();
+			m_PingpongFBO_Thickness[0]->Unbind();
+
+			m_PingpongFBO_Depth[0]->Bind(false);
+			m_PingpongTexture_Depth[1]->Bind();
+			m_Renderer->DrawQuad();
+			m_PingpongFBO_Depth[0]->Unbind();
+
+			m_gaussianFilterShader->Unbind();
+
+			// fix glitch
+			m_2dFilterShader->Bind();
+			m_PingpongFBO_Thickness[1]->Bind(false);
+			m_PingpongTexture_Thickness[0]->Bind();
+			m_Renderer->DrawQuad();
+			m_PingpongFBO_Thickness[1]->Unbind();
+
+			m_PingpongFBO_Depth[1]->Bind(false);
+			m_PingpongTexture_Depth[0]->Bind();
+			m_Renderer->DrawQuad();
+			m_PingpongFBO_Depth[1]->Unbind();
+			m_2dFilterShader->Unbind();
+		}
+	}
+
+	void ViewportLayer::CalculateNormal()
+	{
+
+	}
+
+	void ViewportLayer::FinalProcess()
+	{
+		m_MainFramebuffer->Bind();
+		m_finalProcessShader->Bind();
+		m_finalProcessShader->setFloat("absorption", m_absorption);
+		m_finalProcessShader->setFloat("refractOffsetAmount", refractOffsetAmount);
+		m_SceneTexture->Bind(0);
+		m_PingpongTexture_Thickness[0]->Bind(1);
+		m_NormalMapTexture->Bind(2);
+		m_Renderer->DrawQuad();
+		m_MainFramebuffer->Unbind();
+	}
 }

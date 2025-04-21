@@ -37,8 +37,8 @@ namespace FMEditor {
 		m_Projection = glm::perspective(
 			glm::radians(m_Zoom),
 			m_Width / m_Height,
-			0.1f,
-			100.f
+			m_Near,
+			m_Far
 		);
 	}
 
@@ -47,8 +47,8 @@ namespace FMEditor {
 		m_Projection = glm::perspective(
 			glm::radians(m_Zoom),
 			m_Width / m_Height,
-			0.1f,
-			100.f
+			m_Near,
+			m_Far
 		);
 	}
 

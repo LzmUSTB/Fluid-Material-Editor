@@ -5,6 +5,8 @@
 #include "entt/entity/registry.hpp"
 #include "core/Macros.h"
 #include "renderer/Shader.h"
+#include "renderer/FrameBuffer.h"
+#include "renderer/Texture.h"
 
 namespace FMEditor {
 	struct FrameRateCounter {
@@ -39,16 +41,21 @@ namespace FMEditor {
 		void OnImguiRender() override;
 	private:
 		void LoadResources();
+		uint32_t SwitchImage(uint32_t option);
+		void ApplyFilter();
+		void CalculateNormal();
+		void FinalProcess();
+
 		bool m_IsFirstFrame = true;
 		Scope<Renderer> m_Renderer;
 		ImVec2 m_WindowSize;
-		ImTextureID m_TextureID;
 		Scope<FrameRateCounter> m_Counter;
+		uint32_t m_ResolutionWidth;
+		uint32_t m_ResolutionHeight;
 
 		// entity
 		entt::registry& m_Registry;
 		entt::entity m_Camera;
-
 
 		// imgui
 		void ShowNonStretchedImage(ImTextureID tex_id, int image_width, int image_height);
@@ -60,7 +67,42 @@ namespace FMEditor {
 		// shader & texture
 		Scope<Shader> m_skyboxShader;
 		Scope<Shader> m_testShader;
+		Scope<Shader> m_billboardShader;
+		Scope<Shader> m_pointShader;
+		Scope<Shader> m_particleThicknessShader;
+		Scope<Shader> m_particleDepthShader;
+		Scope<Shader> m_narrowRangeFilterShader;
+		Scope<Shader> m_normalMapShader;
+		Scope<Shader> m_finalProcessShader;
+		Scope<Shader> m_gaussianFilterShader;
+		Scope<Shader> m_linearDepthShader;
+		Scope<Shader> m_2dFilterShader;
+
+		Scope<FrameBuffer> m_MainFramebuffer;
+		Scope<Texture> m_RenderTexture;
+		Scope<FrameBuffer> m_SceneFrameBuffer;
+		Scope<Texture> m_SceneTexture;
+		//Scope<FrameBuffer> m_ThicknessBuffer;
+		//Scope<Texture> m_ThicknessTexture;
+		Scope<Texture> m_DepthTexture;
+		Scope<FrameBuffer> m_NormalMapBuffer;
+		Scope<Texture> m_NormalMapTexture;
+
+		Scope<FrameBuffer> m_PingpongFBO_Thickness[2];
+		Scope<FrameBuffer> m_PingpongFBO_Depth[2];
+		Scope<Texture> m_PingpongTexture_Thickness[2];
+		Scope<Texture> m_PingpongTexture_Depth[2];
+
 		unsigned int m_skyboxTexture;
+
+		// adjustable parameter
+		float m_particleSize = 0.05f;
+		int m_textureShown = 0;
+		int m_filterIterations = 1;
+		float m_filterRange = 0.f;
+		float m_filterOffset = 0.f;
+		float m_absorption = 0.1f;
+		float refractOffsetAmount = 0.1f;
 	};
 
 }

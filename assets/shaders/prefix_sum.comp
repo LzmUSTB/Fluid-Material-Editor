@@ -1,0 +1,16 @@
+// Compute Shader: prefix_sum.comp
+#version 460
+layout(local_size_x = 256) in;
+
+layout(std430, binding=2) buffer GridCounterBuffer { atomic_uint gridCounters[]; };
+layout(std430, binding=3) buffer GridOffsetBuffer { ivec2 gridOffsets[]; };
+
+void main() {
+    int gridID = int(gl_GlobalInvocationID.x);
+    int count = int(atomicCounter(gridCounters[gridID]));
+    
+    // 前缀和计算（需多Pass实现）
+    // ... 此处需展开并行前缀和算法 ...
+    
+    gridOffsets[gridID] = ivec2(startOffset, count);
+}

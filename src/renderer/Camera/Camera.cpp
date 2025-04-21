@@ -11,6 +11,8 @@ namespace FMEditor {
 		m_Position = glm::vec3(x, y, z);
 		m_Zoom = 45.0;
 		m_WorldUp = glm::vec3(0.f, 1.f, 0.f);
+		m_Near = 0.1;
+		m_Far = 100.f;
 	}
 
 	//void Camera::SetProjectionMatrix()
@@ -42,8 +44,8 @@ namespace FMEditor {
 		m_Zoom -= (float)yoffset;
 		if (m_Zoom < 1.0f)
 			m_Zoom = 1.0f;
-		if (m_Zoom > 45.0f)
-			m_Zoom = 45.0f;
+		if (m_Zoom > 60.0f)
+			m_Zoom = 60.0f;
 
 		m_Projection = glm::perspective(
 			glm::radians(m_Zoom),

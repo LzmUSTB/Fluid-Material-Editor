@@ -78,6 +78,7 @@ namespace FMEditor {
 		glAttachShader(m_ID, vertexShader);
 		glAttachShader(m_ID, fragmentShader);
 		glLinkProgram(m_ID);
+
 		if (!CheckProgramError(m_ID, vertexShader, fragmentShader)) {
 			FME_LOG_ERROR("[OpenGL_Shader.cpp]: failed to link shader: %s %s", vertexPath, fragmentPath);
 			FME_DEBUG_LOG_ERROR("[OpenGL_Shader.cpp]: failed to link shader: {0} {1}", vertexPath, fragmentPath);
@@ -124,6 +125,16 @@ namespace FMEditor {
 	void OpenGL_Shader::setInt(const char* name, int i)
 	{
 		glUniform1i(glGetUniformLocation(m_ID, name), i);
+	}
+
+	void OpenGL_Shader::setFloat(const char* name, float f)
+	{
+		glUniform1f(glGetUniformLocation(m_ID, name), f);
+	}
+
+	void OpenGL_Shader::setBool(const char* name, bool b)
+	{
+		glUniform1i(glGetUniformLocation(m_ID, name), b);
 	}
 
 	bool OpenGL_Shader::CheckShaderError(GLint shaderID)

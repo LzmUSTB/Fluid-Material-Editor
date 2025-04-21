@@ -4,6 +4,7 @@
 #include "renderer/ViewportLayer.h"
 #include "core/ecs/EntityLayer.h"
 #include "core/logger/LogLayer.h"
+#include "simulation/PhysicsLayer.h"
 
 int main() {
 	FMEditor::Log::Init();
@@ -16,9 +17,9 @@ int main() {
 	FMEditor::EntityLayer* entity = new FMEditor::EntityLayer();
 	app->PushLayer(entity);
 
-
 	// physics simulation //--------------------------------------------
-
+	FMEditor::PhysicsLayer* physics = new FMEditor::PhysicsLayer(entity->GetRegistry());
+	app->PushLayer(physics);
 
 	// render and viewport //---------------------------------------------------
 	FMEditor::ViewportLayer* viewport = new FMEditor::ViewportLayer(entity->GetRegistry());
