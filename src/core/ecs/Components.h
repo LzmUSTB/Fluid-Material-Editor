@@ -17,71 +17,58 @@ namespace FMEditor {
 		FME_SKYBOX,
 		FME_RIGIDBODY
 	};
-	//struct C_Transform {
-	//	glm::vec3 Translation = { 0.0f, 0.0f, 0.0f };
-	//	glm::vec3 Rotation = { 0.0f, 0.0f, 0.0f };
-	//	glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
-
-	//	C_Transform() = default;
-	//	C_Transform(const C_Transform&) = default;
-	//	C_Transform(const glm::vec3& translation)
-	//		: Translation(translation) {}
-
-	//	glm::mat4 GetTransform() const
-	//	{
-	//		glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
-
-	//		return glm::translate(glm::mat4(1.0f), Translation)
-	//			* rotation
-	//			* glm::scale(glm::mat4(1.0f), Scale);
-	//	}
-	//};
-
-	//struct C_Position {
-	//	glm::vec3 c_Position;
-
-	//	C_Position(float x, float y, float z)
-	//		: c_Position(x, y, z) {}
-	//};
-
-	//struct C_Velocity {
-	//	glm::vec3 c_Velocity;
-	//	C_Velocity() :c_Velocity(0, 0, 0) {}
-	//};
-
-	//struct C_Acceleration {
-	//	glm::vec3 c_Acceleration;
-	//	C_Acceleration() :c_Acceleration(0, 0, 0) {}
-	//};
-
-	//struct C_ParticleStatus {
-	//	// x: mass
-	//	// y: density
-	//	// z: pressure
-	//	glm::vec3 c_ParticleStatus;
-	//	C_ParticleStatus() :c_ParticleStatus(0, 0, 0) {}
-	//};
 
 	struct C_ParticleGroup {
-		unsigned int c_particleCount;
+		unsigned int c_ParticleCount;
+		float c_Density;
 		std::vector<glm::vec4>c_PositionList;
-		std::vector<glm::vec4>c_VelocityList;
-		std::vector<glm::vec4>c_AccelerationList;
+		std::vector<glm::vec4>c_VelocityList;			// vec3 velocity + float mass
+		std::vector<glm::mat3>c_DeformationGradient;
+		std::vector<glm::mat3>c_AffineVelocityField;
+		std::vector<float>c_Plasticity;
 
-		// x: mass
-		// y: density
-		// z: pressure
-		// w: none
-		std::vector<glm::vec4>c_StatusList;
-		C_ParticleGroup(unsigned int count) :
-			c_particleCount(count),
+		C_ParticleGroup(unsigned int count, float density) :
+			c_ParticleCount(count),
+			c_Density(density),
 			c_PositionList(count),
 			c_VelocityList(count),
-			c_AccelerationList(count),
-			c_StatusList(count) {}
+			c_DeformationGradient(count),
+			c_AffineVelocityField(count),
+			c_Plasticity(count) {
+		}
 		void SetPosition(unsigned int index, float x, float y, float z) {
-			//c_PositionList.emplace(c_PositionList.begin() + index, glm::vec3(x, y, z));
 			c_PositionList[index] = glm::vec4(x, y, z, 1);
+		}
+		void SetVelocityAndMass(unsigned int index, float x, float y, float z, float mass) {
+			c_VelocityList[index] = glm::vec4(x, y, z, mass);
+		}
+		void SetDeformationGradient(unsigned int index, glm::mat3 mat) {
+			c_DeformationGradient[index] = mat;
+		}
+		void SetAffineVelocityField(unsigned int index, glm::mat3 mat) {
+			c_AffineVelocityField[index] = mat;
+		}
+		void SetPlasticity(unsigned int index, float plasticity) {
+			c_Plasticity[index] = plasticity;
+		}
+	};
+
+	struct C_Grid {
+		// vec3 velocity + float mass
+		std::vector<glm::vec4>c_GridStatus;
+
+		int c_GridResolution;
+		float c_GridSpacing;
+		glm::vec3 c_GridOrigin;
+
+		C_Grid(int gridRes, float gridSpacing, int particleCount) :
+			c_GridStatus(gridRes* gridRes* gridRes),
+			c_GridResolution(gridRes),
+			c_GridSpacing(gridSpacing),
+			c_GridOrigin(-gridSpacing* gridRes / 2) {}
+
+		inline int GetIndex(int x, int y, int z) const {
+			return x + y * c_GridResolution + z * c_GridResolution * c_GridResolution;
 		}
 	};
 
@@ -89,19 +76,11 @@ namespace FMEditor {
 		C_Camera(float x, float y, float z, int width, int height) :c_Camera(x, y, z, width, height) {
 		}
 		FixedFocusCamera c_Camera;
-		//glm::mat4 c_ViewMatrix;
-		//glm::mat4 c_ProjectionMatrix;
-		//float c_Zoom;
-
-		//unsigned int c_TargetTexture;
 	};
 
 	struct C_RenderObject {
 		Mesh c_Mesh;
 		FME_RENDER_TYPE c_RenderType;
-		//unsigned int c_ShaderID;
-		//C_RenderObject(const float* vertices, unsigned int vertices_size, const unsigned int* indices, unsigned int indices_size) :
-		//	c_Mesh(vertices, vertices_size, indices, indices_size) {}
 		C_RenderObject(FME_RENDER_TYPE renderType, Mesh& mesh) :c_RenderType(renderType), c_Mesh(mesh) {}
 	};
 

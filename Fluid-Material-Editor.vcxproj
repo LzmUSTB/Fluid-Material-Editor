@@ -625,11 +625,13 @@
     <None Include="assets\shaders\2d_fix_filter.frag" />
     <None Include="assets\shaders\billboard.frag" />
     <None Include="assets\shaders\billboard.vert" />
-    <None Include="assets\shaders\build_grid.comp" />
+    <None Include="assets\shaders\mlsmpm_g2p.comp" />
+    <None Include="assets\shaders\mlsmpm_p2g.comp" />
+    <None Include="assets\shaders\mlsmpm_sim.comp" />
+    <None Include="assets\shaders\test.comp" />
     <None Include="assets\shaders\calculate_normal.frag" />
     <None Include="assets\shaders\calculate_normal_from_thickness.frag" />
     <None Include="assets\shaders\finalProcess.frag" />
-    <None Include="assets\shaders\find_neighbors.comp" />
     <None Include="assets\shaders\gaussian_filter.frag" />
     <None Include="assets\shaders\linear_depth.frag" />
     <None Include="assets\shaders\narrow_range_filter.frag" />
@@ -639,7 +641,6 @@
     <None Include="assets\shaders\point.frag" />
     <None Include="assets\shaders\point.vert" />
     <None Include="assets\shaders\postprocess.vert" />
-    <None Include="assets\shaders\prefix_sum.comp" />
     <None Include="assets\shaders\skybox.frag" />
     <None Include="assets\shaders\skybox.vert" />
     <None Include="assets\shaders\test.frag" />

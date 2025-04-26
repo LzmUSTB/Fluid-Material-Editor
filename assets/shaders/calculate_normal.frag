@@ -32,7 +32,7 @@ void main() {
     vec3 dx = posR - posC;
     vec3 dy = posU - posC;
 
-    vec3 normal = normalize(cross(dy, dx)); 
+    vec3 normal = normalize(cross(dx, dy)); 
 
     FragColor = vec4(normal, 1.0); 
 }

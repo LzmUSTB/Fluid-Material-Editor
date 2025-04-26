@@ -30,6 +30,7 @@ namespace FMEditor {
 
 		virtual const char* Get_API_Version() = 0;
 		virtual const char* Get_Device_Name() = 0;
+		virtual int Get_MaximumSSBO() = 0;
 
 		virtual void DrawMesh(Mesh& mesh) = 0;
 		virtual void DrawMeshInstanced(Mesh& mesh, uint32_t count) = 0;

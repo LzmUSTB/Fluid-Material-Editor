@@ -67,13 +67,37 @@ namespace FMEditor {
 	void OpenGL_ComputeShader::Bind()
 	{
 		glUseProgram(m_ID);
-
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	}
 
 	void OpenGL_ComputeShader::Unbind()
 	{
 		glUseProgram(0);
+	}
+
+	void OpenGL_ComputeShader::Dispatch(int size_x, int size_y, int size_z)
+	{
+		glDispatchCompute(size_x, size_y, size_z);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	}
+
+	void OpenGL_ComputeShader::setFloat(const char* name, float f)
+	{
+		glUniform1f(glGetUniformLocation(m_ID, name), f);
+	}
+
+	void OpenGL_ComputeShader::setVec4(const char* name, glm::vec3 origin, float res)
+	{
+		glUniform4f(glGetUniformLocation(m_ID, name), origin.x, origin.y, origin.z, res);
+	}
+
+	void OpenGL_ComputeShader::setVec3(const char* name, glm::vec3 vec)
+	{
+		glUniform3f(glGetUniformLocation(m_ID, name), vec.x, vec.y, vec.z);
+	}
+
+	void OpenGL_ComputeShader::setInt(const char* name, int i)
+	{
+		glUniform1i(glGetUniformLocation(m_ID, name), i);
 	}
 
 	bool OpenGL_ComputeShader::CheckShaderError(GLint shaderID)

@@ -13,6 +13,10 @@ int main() {
 	std::unique_ptr<FMEditor::Application> app;
 	app.reset(new FMEditor::Application);
 
+	// enable log window //-----------------------------------------------
+	FMEditor::LogLayer* logger = FMEditor::LogLayer::Get();
+	app->PushLayer(logger);
+
 	// Entity System //------------------------------------------------
 	FMEditor::EntityLayer* entity = new FMEditor::EntityLayer();
 	app->PushLayer(entity);
@@ -24,10 +28,6 @@ int main() {
 	// render and viewport //---------------------------------------------------
 	FMEditor::ViewportLayer* viewport = new FMEditor::ViewportLayer(entity->GetRegistry());
 	app->PushLayer(viewport);
-
-	// enable log window //-----------------------------------------------
-	FMEditor::LogLayer* logger = FMEditor::LogLayer::Get();
-	app->PushLayer(logger);
 
 	app->Run();
 }

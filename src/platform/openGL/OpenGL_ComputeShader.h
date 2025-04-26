@@ -1,5 +1,6 @@
 #pragma once
 #include <glad/glad.h>
+#include <glm/glm.hpp>
 #include "core/Macros.h"
 
 namespace FMEditor {
@@ -14,6 +15,11 @@ namespace FMEditor {
 
 		void Bind();
 		void Unbind();
+		void Dispatch(int size_x, int size_y, int size_z);
+		void setFloat(const char* name, float f);
+		void setVec4(const char* name, glm::vec3 origin, float res);
+		void setVec3(const char* name, glm::vec3 vec);
+		void setInt(const char* name, int i);
 	private:
 		bool CheckShaderError(GLint shaderID);
 		bool CheckProgramError(GLint programID, GLint compID);

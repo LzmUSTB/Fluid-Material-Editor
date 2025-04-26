@@ -1488,9 +1488,7 @@
     </None>
     <None Include="assets\shaders\skybox.vert" />
     <None Include="assets\shaders\skybox.frag" />
-    <None Include="assets\shaders\build_grid.comp" />
-    <None Include="assets\shaders\prefix_sum.comp" />
-    <None Include="assets\shaders\find_neighbors.comp" />
+    <None Include="assets\shaders\test.comp" />
     <None Include="assets\shaders\billboard.frag" />
     <None Include="assets\shaders\billboard.vert" />
     <None Include="assets\shaders\point.vert" />
@@ -1506,6 +1504,15 @@
     <None Include="assets\shaders\2d_fix_filter.frag" />
     <None Include="assets\shaders\particle_depth.frag" />
     <None Include="assets\shaders\calculate_normal_from_thickness.frag">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\mlsmpm_p2g.comp">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\mlsmpm_sim.comp">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\mlsmpm_g2p.comp">
       <Filter>assets\shaders</Filter>
     </None>
   </ItemGroup>

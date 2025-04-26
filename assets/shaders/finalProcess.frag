@@ -6,6 +6,7 @@ layout(binding = 2) uniform sampler2D normalMap;
 
 uniform float absorption;
 uniform float refractOffsetAmount;
+uniform vec3 FluidColor;
 
 out vec4 FragColor;
 
@@ -24,7 +25,7 @@ void main() {
     vec3 refractColor = applyRefraction(uv, normal, thickness);
     
     float alpha = 1.0 - exp(-thickness * absorption);
-    vec3 finalColor = mix(refractColor, vec3(0.2, 0.3, 1.0),alpha);
+    vec3 finalColor = mix(refractColor, FluidColor, alpha);
     //vec3 finalColor = mix(texture(sceneColor, uv).rgb, fluidColor, alpha);
 
     FragColor = vec4(finalColor,1);

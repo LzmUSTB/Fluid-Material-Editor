@@ -25,6 +25,7 @@ namespace FMEditor {
 
 		const char* Get_API_Version() override;
 		const char* Get_Device_Name() override;
+		int Get_MaximumSSBO() override;
 
 		void DrawMesh(Mesh& mesh) override;
 		void DrawMeshInstanced(Mesh& mesh, uint32_t count) override;

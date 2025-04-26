@@ -82,6 +82,13 @@ namespace FMEditor {
 		return (const char*)glGetString(GL_RENDERER);
 	}
 
+	int OpenGL_Renderer::Get_MaximumSSBO()
+	{
+		int maxSSBOs = 0;
+		glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &maxSSBOs);
+		return maxSSBOs;
+	}
+
 	void OpenGL_Renderer::DrawMesh(Mesh& mesh)
 	{
 		glBindVertexArray(mesh.VAO);

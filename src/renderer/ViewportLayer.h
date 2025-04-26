@@ -96,13 +96,14 @@ namespace FMEditor {
 		unsigned int m_skyboxTexture;
 
 		// adjustable parameter
-		float m_particleSize = 0.05f;
+		float m_particleSize = 0.025f;
 		int m_textureShown = 0;
-		int m_filterIterations = 1;
+		int m_filterIterations = 6;
 		float m_filterRange = 0.f;
 		float m_filterOffset = 0.f;
-		float m_absorption = 0.1f;
-		float refractOffsetAmount = 0.1f;
+		float m_absorption = 0.02f;
+		float refractOffsetAmount = 0.05f;
+		float m_color[3] = {0};
 	};
 
 }

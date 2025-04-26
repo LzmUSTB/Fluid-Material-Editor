@@ -1,0 +1,96 @@
+#version 460 core
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(std430, binding = 0) buffer PosBuffer {
+    vec4 positions[];
+};
+
+layout(std430, binding = 1) buffer VBuffer {
+    vec4 velocities[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 2) buffer GridBuffer {
+    vec4 gridStatus[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 3) buffer CBuffer {
+    mat3 affineC[]; // APIC affine velocity field
+};
+
+layout(std430, binding = 3) buffer FBuffer {
+    mat3 F[]; // deformation gradient
+};
+
+uniform int gridRes;
+uniform int gridBoundary;
+uniform float gridSpacing;
+uniform float deltaTime;
+uniform vec3 gridOrigin;
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+
+    // particle position -> grid space
+    float dx = 1.f / float(gridRes);
+    float inv_dx = 1.f / dx;
+    vec3 gridEnd = vec3(gridSpacing * gridRes) + gridOrigin;
+    vec3 pos = (positions[id].xyz - gridOrigin)/(gridEnd - gridOrigin) * gridRes;
+    ivec3 base = ivec3(floor(pos - 0.5));
+    float mass = velocities[id].w;
+    vec3 fx = pos - base;
+
+    // B-spline weights
+    vec3 w[3];
+    w[0] = 0.5 * (1.5 - fx)*(1.5 - fx);
+    w[1] = 0.75 - (fx - 1.0)*(fx - 1.0);
+    w[2] = 0.5 * (fx - 0.5)*(fx - 0.5);
+
+    vec3 newV = vec3(0.0);
+    mat3 newC = mat3(0.0);
+
+    // loop neighbor nodes
+    for (int i = 0; i < 3; ++i)
+    for (int j = 0; j < 3; ++j)
+    for (int k = 0; k < 3; ++k) {
+        ivec3 node = base + ivec3(i, j, k);
+
+        if (any(lessThan(node, ivec3(0))) || any(greaterThanEqual(node, ivec3(gridRes))))
+            continue;
+
+        int index = node.x + node.y * gridRes + node.z * gridRes * gridRes;
+        vec4 grid = gridStatus[index];
+        float mass = grid.w;
+        if (mass <= 0.) continue;
+
+        float weight = w[i].x * w[j].y * w[k].z;
+        vec3 dpos = (vec3(i,j,k) - fx);
+
+        vec3 vel = grid.xyz * weight;
+
+        newV += vel;
+        newC += 4.0 * gridRes * mat3(vel * dpos.x, vel * dpos.y, vel * dpos.z); // Outer product
+
+    }
+    velocities[id].xyz = newV;
+    affineC[id] = newC;
+    F[id] = (mat3(1.0) + deltaTime * newC) * F[id]; 
+
+    // fix boundary
+    vec3 BoundaryOrigin = gridOrigin + vec3(gridBoundary*gridSpacing); 
+    vec3 BoundaryEnd = gridEnd - vec3(gridBoundary*gridSpacing); 
+    positions[id].xyz = clamp(positions[id].xyz, vec3(BoundaryOrigin), vec3(BoundaryEnd));
+
+    vec3 prePosition = positions[id].xyz + velocities[id].xyz * deltaTime;
+    vec3 velocityFix = vec3(0); 
+
+    //if(prePosition.x < BoundaryOrigin.x) velocityFix.x += gridSpacing*(BoundaryOrigin.x - prePosition.x);
+    //if(prePosition.x > BoundaryEnd.x)    velocityFix.x += gridSpacing*(BoundaryEnd.x - prePosition.x);
+
+    //if(prePosition.y < BoundaryOrigin.y) velocityFix.y += gridSpacing*(BoundaryOrigin.y - prePosition.y);
+    //if(prePosition.y < BoundaryEnd.y)    velocityFix.y += gridSpacing*(BoundaryEnd.y - prePosition.y);
+
+    //if(prePosition.z < BoundaryOrigin.z) velocityFix.z += gridSpacing*(BoundaryOrigin.z- prePosition.z);
+    //if(prePosition.z < BoundaryEnd.z)    velocityFix.z += gridSpacing*(BoundaryEnd.z- prePosition.z);
+
+    positions[id].xyz += velocities[id].xyz * deltaTime + velocityFix;
+}

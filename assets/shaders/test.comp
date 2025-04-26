@@ -1,0 +1,68 @@
+#version 460 core
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(std430, binding = 0) buffer PosBuffer {
+    vec4 positions[];
+};
+
+layout(std430, binding = 1) buffer VBuffer {
+    vec4 velocities[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 2) buffer GridBuffer {
+    vec4 gridStatus[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 3) buffer CBuffer {
+    mat3 affineC[]; // APIC affine velocity field
+};
+
+uniform int gridRes;
+uniform vec3 gridOrigin;
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+
+    // particle position -> grid space
+    vec3 pos = (positions[id].xyz - gridOrigin) * gridRes;
+    ivec3 base = ivec3(floor(pos - 0.5));
+    float mass = velocities[id].w;
+    vec3 fx = pos - base;
+
+    // B-spline weights
+    vec3 w[3];
+    w[0] = 0.5 * (1.5 - fx)*(1.5 - fx);
+    w[1] = 0.75 - (fx - 1.0)*(fx - 1.0);
+    w[2] = 0.5 * (fx - 0.5)*(fx - 0.5);
+
+    vec3 newV = vec3(0.0);
+    mat3 newC = mat3(0.0);
+
+    // loop neighbor nodes
+    for (int i = 0; i < 3; ++i)
+    for (int j = 0; j < 3; ++j)
+    for (int k = 0; k < 3; ++k) {
+        ivec3 node = base + ivec3(i, j, k);
+
+        if (any(lessThan(node, ivec3(0))) || any(greaterThanEqual(node, ivec3(gridRes))))
+            continue;
+
+        int index = node.x + node.y * gridRes + node.z * gridRes * gridRes;
+        vec4 grid = gridStatus[index];
+        float mass = grid.w;
+        if (mass < 1e-6) continue;
+
+        vec3 momentum = grid.xyz;
+        vec3 vel = momentum / mass;
+
+        float weight = w[i].x * w[j].y * w[k].z;
+        vec3 dpos = (vec3(i,j,k) - fx) * (1.0 / gridRes);
+
+        newV += weight * vel;
+        newC += 4.0 * weight * mat3(vel * dpos.x, vel * dpos.y, vel * dpos.z); // Outer product
+
+        velocities[id].xyz = newV;
+        affineC[id] = newC;
+    }
+    positions[id].y += -9.8*0.001;
+}

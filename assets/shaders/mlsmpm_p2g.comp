@@ -1,0 +1,80 @@
+#version 460 core
+#extension GL_NV_shader_atomic_float : enable
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(std430, binding = 0) buffer PosBuffer {
+    vec4 positions[];
+};
+
+layout(std430, binding = 1) buffer VBuffer {
+    vec4 velocities[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 2) buffer GridBuffer {
+    vec4 gridStatus[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 3) buffer CBuffer {
+    mat3 affineC[]; // APIC affine velocity field
+};
+
+layout(std430, binding = 3) buffer FBuffer {
+    mat3 F[]; // deformation gradient
+};
+
+uniform int gridRes;
+uniform float gridSpacing;
+uniform vec3 gridOrigin;
+uniform float E; //  Young's Modulus
+uniform float deltaTime; 
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+
+    // particle position -> grid space
+    float dx = 1.f / float(gridRes);
+    float inv_dx = 1.f / dx;
+    vec3 gridEnd = vec3(gridSpacing * gridRes) + gridOrigin;
+    vec3 pos = (positions[id].xyz - gridOrigin)/(gridEnd - gridOrigin) * gridRes;
+    ivec3 base = ivec3(floor(pos - 0.5));
+    float mass = velocities[id].w;
+    mat3 Cp = affineC[id];
+    vec3 fx = pos - base;
+
+    // deformation gradient
+    float J = determinant(F[id]);
+    float pressure = -E * (1. - J);
+    mat3 stress = mat3(pressure);
+    stress = - (deltaTime * mass) * stress;
+
+    // B-spline weights
+    vec3 w[3];
+    w[0] = 0.5 * (1.5 - fx) * (1.5 - fx);
+    w[1] = 0.75 - (fx - 1.0) * (fx - 1.0);
+    w[2] = 0.5 * (fx - 0.5) * (fx - 0.5);
+
+    // loop neighbor nodes
+    for (int i = 0; i < 3; ++i)
+    for (int j = 0; j < 3; ++j)
+    for (int k = 0; k < 3; ++k) {
+        ivec3 node = base + ivec3(i, j, k);
+
+        if (any(lessThan(node, ivec3(0))) || any(greaterThanEqual(node, ivec3(gridRes))))
+            continue;
+
+        int index = node.x + node.y * gridRes + node.z * gridRes * gridRes;
+        vec3 dpos = (vec3(i,j,k) - fx) * dx;
+
+        float weight = w[i].x * w[j].y * w[k].z;
+        vec3 momentum = (mass * velocities[id].xyz + Cp * dpos) * weight;
+        //vec3 force = stress * dpos;
+        vec3 force = vec3(0.);
+
+        // atomic add to grid
+        atomicAdd(gridStatus[index].x, momentum.x + force.x);
+        atomicAdd(gridStatus[index].y, momentum.y + force.y);
+        atomicAdd(gridStatus[index].z, momentum.z + force.z);
+        atomicAdd(gridStatus[index].w, mass * weight);
+    }
+}

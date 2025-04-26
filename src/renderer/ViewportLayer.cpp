@@ -113,7 +113,7 @@ namespace FMEditor {
 			m_particleThicknessShader->setFloat("ParticleRadius", m_particleSize);
 			float coefficient = camera.c_Camera.GetHeight() / (2.f * glm::tan(camera.c_Camera.GetFovRadians() / 2));
 			m_particleThicknessShader->setFloat("R_screen_coefficient", coefficient);
-			m_Renderer->DrawPoints(m_particleSize, particleGroup.c_particleCount);
+			m_Renderer->DrawPoints(m_particleSize, particleGroup.c_ParticleCount);
 			m_Renderer->EndParticleRender();
 			m_PingpongFBO_Thickness[0]->Unbind();
 
@@ -127,7 +127,7 @@ namespace FMEditor {
 			m_particleDepthShader->setFloat("Far", camera.c_Camera.GetFar());
 			m_particleDepthShader->setFloat("R_screen_coefficient", coefficient);
 			m_PingpongFBO_Depth[0]->Bind();
-			m_Renderer->DrawPoints(m_particleSize, particleGroup.c_particleCount);
+			m_Renderer->DrawPoints(m_particleSize, particleGroup.c_ParticleCount);
 			m_Renderer->EndParticleRender();
 			m_PingpongFBO_Depth[0]->Unbind();
 		}
@@ -181,26 +181,30 @@ namespace FMEditor {
 			ImGuiWindowFlags_NoFocusOnAppearing |
 			ImGuiWindowFlags_NoNav;
 
+		// GUI: openGL version etc. 
 		ImGui::SetNextWindowBgAlpha(0.35f);
 		if (ImGui::Begin("Renderer Info", &m_ShowRendererInfo, window_flags)) {
 			ImGui::Text("OpenGL: %s", m_Renderer->Get_API_Version());	// TODO
 			ImGui::Text("Device: %s", m_Renderer->Get_Device_Name());
+			ImGui::Text("Maximum SSBOs: %d", m_Renderer->Get_MaximumSSBO());
 			ImGui::Text("FrameRate: %.f FPS", m_Counter->m_FPS);
 		}
 		ImGui::End();
 
+		// GUI: camera information
 		ImGui::Begin("Camera Info");
 		auto& camera = m_Registry.get<C_Camera>(m_Camera);
 		glm::vec3 cameraPos = camera.c_Camera.GetPosition();
 		ImGui::Text("CameraPosition: ( %.2f, %.2f, %.2f )", cameraPos.x, cameraPos.y, cameraPos.z);
-
 		ImGui::End();
 
+		// GUI: render option
 		ImGui::Begin("Render Option");
 		ImGui::SliderFloat("particle size", &m_particleSize, 0.0f, 0.05f, "%.3f");
-		ImGui::SliderFloat("filter offset", &m_filterOffset, 0.0f, 100.f, "%.3f");
-		ImGui::SliderFloat("filter range", &m_filterRange, 0.0f, 100.f, "%.3f");
+		//ImGui::SliderFloat("filter offset", &m_filterOffset, 0.0f, 100.f, "%.3f");
+		//ImGui::SliderFloat("filter range", &m_filterRange, 0.0f, 100.f, "%.3f");
 		ImGui::SliderFloat("absorption", &m_absorption, 0.0f, 1.f, "%.3f");
+		ImGui::ColorEdit3("fluid color", m_color);
 		ImGui::SliderFloat("reract offset", &refractOffsetAmount, 0.0f, 1.f, "%.3f");
 		ImGui::SliderInt("filter iterations", &m_filterIterations, 0, 10);
 		ImGui::SliderInt("render result", &m_textureShown, 0, 6);
@@ -357,6 +361,7 @@ namespace FMEditor {
 		m_finalProcessShader->Bind();
 		m_finalProcessShader->setFloat("absorption", m_absorption);
 		m_finalProcessShader->setFloat("refractOffsetAmount", refractOffsetAmount);
+		m_finalProcessShader->setVec3("FluidColor", m_color[0], m_color[1], m_color[2]);
 		m_SceneTexture->Bind(0);
 		m_PingpongTexture_Thickness[0]->Bind(1);
 		m_NormalMapTexture->Bind(2);

@@ -11,15 +11,14 @@ namespace FMEditor {
 
 	void EntityLayer::OnImguiRender()
 	{
-		ImGui::Begin("Entity Inspector");
-		auto view = m_Registry.view<C_Infomation>();
-		ImGui::Text("entity list:");
-		for (auto entity : view) {
-			//ImGui::DragFloat3("Position", glm::value_ptr(tf->position));
-			auto& info = view.get<C_Infomation>(entity);
-			ImGui::Text(info.c_Name.c_str());
-		}
-		ImGui::End();
+		//ImGui::Begin("Entity Inspector");
+		//auto view = m_Registry.view<C_Infomation>();
+		//ImGui::Text("entity list:");
+		//for (auto entity : view) {
+		//	auto& info = view.get<C_Infomation>(entity);
+		//	ImGui::Text(info.c_Name.c_str());
+		//}
+		//ImGui::End();
 	}
 
 	void EntityLayer::LoadResources()
