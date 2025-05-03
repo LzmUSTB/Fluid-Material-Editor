@@ -627,6 +627,7 @@
     <None Include="assets\shaders\billboard.vert" />
     <None Include="assets\shaders\mlsmpm_g2p.comp" />
     <None Include="assets\shaders\mlsmpm_p2g.comp" />
+    <None Include="assets\shaders\mlsmpm_p2g_2.comp" />
     <None Include="assets\shaders\mlsmpm_sim.comp" />
     <None Include="assets\shaders\test.comp" />
     <None Include="assets\shaders\calculate_normal.frag" />

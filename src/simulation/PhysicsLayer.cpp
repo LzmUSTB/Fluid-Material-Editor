@@ -5,7 +5,12 @@
 namespace FMEditor {
 	PhysicsLayer::PhysicsLayer(entt::registry& registry) :
 		Layer("PhysicsLayer"), m_Registry(registry),
-		m_Paused(true), m_TimeScale(1.f)
+		m_Paused(true), 
+		m_TimeScale(1.f), 
+		m_GridBoundary(20), 
+		m_Stiffness(3.f), 
+		m_RestDensity(4.f), 
+		m_Viscosity(0.1f)
 	{
 		PI = glm::pi<float>();
 
@@ -40,7 +45,7 @@ namespace FMEditor {
 
 		m_GridEntity = m_Registry.create();
 		int gridResolution = 128;
-		auto& grid = m_Registry.emplace<C_Grid>(m_GridEntity, gridResolution, interval * 1.f, particleCount);
+		auto& grid = m_Registry.emplace<C_Grid>(m_GridEntity, gridResolution, interval * 1.2f, particleCount);
 		FME_DEBUG_LOG_TRACE("gridOrigin: {0}, {1}, {2}", grid.c_GridOrigin.x, grid.c_GridOrigin.y, grid.c_GridOrigin.z);
 
 		m_PositionSSBO = CreateSSBO(particleGroup.c_PositionList);
@@ -68,16 +73,27 @@ namespace FMEditor {
 			m_MLSMPM_P2G_Shader->Bind();
 			m_MLSMPM_P2G_Shader->setInt("gridRes", grid.c_GridResolution);
 			m_MLSMPM_P2G_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
-			m_MLSMPM_P2G_Shader->setFloat("E", 1e3);
 			m_MLSMPM_P2G_Shader->setFloat("gridSpacing", grid.c_GridSpacing);
 			m_MLSMPM_P2G_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
 			m_MLSMPM_P2G_Shader->Dispatch(64 * 64, 1, 1);
 			m_MLSMPM_P2G_Shader->Unbind();
 
+			// p2g 2
+			m_MLSMPM_P2G_2_Shader->Bind();
+			m_MLSMPM_P2G_2_Shader->setInt("gridRes", grid.c_GridResolution);
+			m_MLSMPM_P2G_2_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
+			m_MLSMPM_P2G_2_Shader->setFloat("gridSpacing", grid.c_GridSpacing);
+			m_MLSMPM_P2G_2_Shader->setFloat("stiffness", m_Stiffness);
+			m_MLSMPM_P2G_2_Shader->setFloat("rest_density", m_RestDensity);
+			m_MLSMPM_P2G_2_Shader->setFloat("dynamic_viscosity", m_Viscosity);
+			m_MLSMPM_P2G_2_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
+			m_MLSMPM_P2G_2_Shader->Dispatch(64 * 64, 1, 1);
+			m_MLSMPM_P2G_2_Shader->Unbind();
+
 			// grid update
 			m_MLSMPM_SIM_Shader->Bind();
 			m_MLSMPM_SIM_Shader->setInt("gridRes", grid.c_GridResolution);
-			m_MLSMPM_SIM_Shader->setInt("gridBoundary", 4);
+			m_MLSMPM_SIM_Shader->setInt("gridBoundary", m_GridBoundary);
 			m_MLSMPM_SIM_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
 			m_MLSMPM_SIM_Shader->Dispatch(16, 16, 16);
 			m_MLSMPM_SIM_Shader->Unbind();
@@ -85,7 +101,7 @@ namespace FMEditor {
 			//g2p
 			m_MLSMPM_G2P_Shader->Bind();
 			m_MLSMPM_G2P_Shader->setInt("gridRes", grid.c_GridResolution);
-			m_MLSMPM_G2P_Shader->setInt("gridBoundary", 4);
+			m_MLSMPM_G2P_Shader->setInt("gridBoundary", m_GridBoundary);
 			m_MLSMPM_G2P_Shader->setFloat("gridSpacing", grid.c_GridSpacing);
 			m_MLSMPM_G2P_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
 			m_MLSMPM_G2P_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
@@ -111,12 +127,17 @@ namespace FMEditor {
 		}
 		ImGui::Checkbox("Paused", &m_Paused);
 		ImGui::SliderFloat("Time Scale", &m_TimeScale, 0.1f, 1.f, "%.3f");
+		ImGui::SliderFloat("Stiffness", &m_Stiffness, 0.f, 10.f, "%.3f");
+		ImGui::SliderFloat("Density", &m_RestDensity, 0.f, 10.f, "%.3f");
+		ImGui::SliderFloat("Viscosity", &m_Viscosity, 0.f, 1.f, "%.3f");
+		ImGui::SliderInt("Grid Boundary", &m_GridBoundary, 1, 40, "%d");
 		ImGui::End();
 	}
 
 	void PhysicsLayer::LoadResources()
 	{
 		m_MLSMPM_P2G_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/mlsmpm_p2g.comp");
+		m_MLSMPM_P2G_2_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/mlsmpm_p2g_2.comp");
 		m_MLSMPM_SIM_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/mlsmpm_sim.comp");
 		m_MLSMPM_G2P_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/mlsmpm_g2p.comp");
 	}

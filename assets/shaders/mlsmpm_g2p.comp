@@ -17,7 +17,7 @@ layout(std430, binding = 3) buffer CBuffer {
     mat3 affineC[]; // APIC affine velocity field
 };
 
-layout(std430, binding = 3) buffer FBuffer {
+layout(std430, binding = 4) buffer FBuffer {
     mat3 F[]; // deformation gradient
 };
 
@@ -30,13 +30,15 @@ uniform vec3 gridOrigin;
 void main() {
     uint id = gl_GlobalInvocationID.x;
 
-    // particle position -> grid space
     float dx = 1.f / float(gridRes);
     float inv_dx = 1.f / dx;
     vec3 gridEnd = vec3(gridSpacing * gridRes) + gridOrigin;
+    float mass = velocities[id].w;
+    mat3 Cp = affineC[id];
+
+    // grid space position
     vec3 pos = (positions[id].xyz - gridOrigin)/(gridEnd - gridOrigin) * gridRes;
     ivec3 base = ivec3(floor(pos - 0.5));
-    float mass = velocities[id].w;
     vec3 fx = pos - base;
 
     // B-spline weights
@@ -65,32 +67,34 @@ void main() {
         float weight = w[i].x * w[j].y * w[k].z;
         vec3 dpos = (vec3(i,j,k) - fx);
 
-        vec3 vel = grid.xyz * weight;
+        vec3 weighted_vel = grid.xyz * weight;
 
-        newV += vel;
-        newC += 4.0 * gridRes * mat3(vel * dpos.x, vel * dpos.y, vel * dpos.z); // Outer product
+        newV += weighted_vel;
+        newC += 4.0  * mat3(weighted_vel * dpos.x, weighted_vel * dpos.y, weighted_vel * dpos.z); // Outer product
 
     }
     velocities[id].xyz = newV;
     affineC[id] = newC;
-    F[id] = (mat3(1.0) + deltaTime * newC) * F[id]; 
 
     // fix boundary
     vec3 BoundaryOrigin = gridOrigin + vec3(gridBoundary*gridSpacing); 
     vec3 BoundaryEnd = gridEnd - vec3(gridBoundary*gridSpacing); 
-    positions[id].xyz = clamp(positions[id].xyz, vec3(BoundaryOrigin), vec3(BoundaryEnd));
+    positions[id].xyz = clamp(positions[id].xyz, BoundaryOrigin, BoundaryEnd);
 
-    vec3 prePosition = positions[id].xyz + velocities[id].xyz * deltaTime;
     vec3 velocityFix = vec3(0); 
 
-    //if(prePosition.x < BoundaryOrigin.x) velocityFix.x += gridSpacing*(BoundaryOrigin.x - prePosition.x);
-    //if(prePosition.x > BoundaryEnd.x)    velocityFix.x += gridSpacing*(BoundaryEnd.x - prePosition.x);
+    float k = 0.001;
+    vec3 prePosition = positions[id].xyz + velocities[id].xyz * deltaTime; 
+    
+    if(prePosition.x < BoundaryOrigin.x) velocityFix.x += k * gridSpacing * (BoundaryOrigin.x - prePosition.x);
+    if(prePosition.x > BoundaryEnd.x)    velocityFix.x += k * gridSpacing * (BoundaryEnd.x - prePosition.x);
+                                                        
+    if(prePosition.y < BoundaryOrigin.y) velocityFix.y += k * gridSpacing * (BoundaryOrigin.y - prePosition.y);
+    if(prePosition.y < BoundaryEnd.y)    velocityFix.y += k * gridSpacing * (BoundaryEnd.y - prePosition.y);
+                                                        
+    if(prePosition.z < BoundaryOrigin.z) velocityFix.z += k * gridSpacing * (BoundaryOrigin.z- prePosition.z);
+    if(prePosition.z < BoundaryEnd.z)    velocityFix.z += k * gridSpacing * (BoundaryEnd.z- prePosition.z);
 
-    //if(prePosition.y < BoundaryOrigin.y) velocityFix.y += gridSpacing*(BoundaryOrigin.y - prePosition.y);
-    //if(prePosition.y < BoundaryEnd.y)    velocityFix.y += gridSpacing*(BoundaryEnd.y - prePosition.y);
-
-    //if(prePosition.z < BoundaryOrigin.z) velocityFix.z += gridSpacing*(BoundaryOrigin.z- prePosition.z);
-    //if(prePosition.z < BoundaryEnd.z)    velocityFix.z += gridSpacing*(BoundaryEnd.z- prePosition.z);
-
-    positions[id].xyz += velocities[id].xyz * deltaTime + velocityFix;
+    positions[id].xyz += velocities[id].xyz * deltaTime;
+    velocities[id].xyz += velocityFix;
 }

@@ -1515,6 +1515,9 @@
     <None Include="assets\shaders\mlsmpm_g2p.comp">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="assets\shaders\mlsmpm_p2g_2.comp">
+      <Filter>assets\shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\cubemap\nx.png">

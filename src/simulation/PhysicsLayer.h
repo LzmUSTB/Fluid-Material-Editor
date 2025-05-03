@@ -63,12 +63,17 @@ namespace FMEditor {
 
 		// compute shaders
 		Scope<OpenGL_ComputeShader> m_MLSMPM_P2G_Shader;
+		Scope<OpenGL_ComputeShader> m_MLSMPM_P2G_2_Shader;
 		Scope<OpenGL_ComputeShader> m_MLSMPM_SIM_Shader;
 		Scope<OpenGL_ComputeShader> m_MLSMPM_G2P_Shader;
 
 		// simulation settings
 		bool m_Paused;
 		float m_TimeScale;
+		int m_GridBoundary;
+		float m_Stiffness;
+		float m_RestDensity;
+		float m_Viscosity;
 	};
 }
 
