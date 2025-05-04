@@ -104,6 +104,7 @@ namespace FMEditor {
 		float m_absorption = 0.02f;
 		float refractOffsetAmount = 0.05f;
 		float m_color[3] = {0};
+		float m_filterThreshold = 10.f;
 	};
 
 }

@@ -33,6 +33,7 @@ void main() {
     vec3 dy = posU - posC;
 
     vec3 normal = normalize(cross(dx, dy)); 
+    vec3 visualNormal = normal * 0.5 + 0.5;
 
     FragColor = vec4(normal, 1.0); 
 }

@@ -7,9 +7,9 @@ namespace FMEditor {
 		Layer("PhysicsLayer"), m_Registry(registry),
 		m_Paused(true), 
 		m_TimeScale(1.f), 
-		m_GridBoundary(20), 
-		m_Stiffness(3.f), 
-		m_RestDensity(4.f), 
+		m_GridBoundary(30), 
+		m_Stiffness(10.f), 
+		m_RestDensity(0.45f), 
 		m_Viscosity(0.1f)
 	{
 		PI = glm::pi<float>();
@@ -127,7 +127,7 @@ namespace FMEditor {
 		}
 		ImGui::Checkbox("Paused", &m_Paused);
 		ImGui::SliderFloat("Time Scale", &m_TimeScale, 0.1f, 1.f, "%.3f");
-		ImGui::SliderFloat("Stiffness", &m_Stiffness, 0.f, 10.f, "%.3f");
+		ImGui::SliderFloat("Stiffness", &m_Stiffness, 0.f, 20.f, "%.3f");
 		ImGui::SliderFloat("Density", &m_RestDensity, 0.f, 10.f, "%.3f");
 		ImGui::SliderFloat("Viscosity", &m_Viscosity, 0.f, 1.f, "%.3f");
 		ImGui::SliderInt("Grid Boundary", &m_GridBoundary, 1, 40, "%d");

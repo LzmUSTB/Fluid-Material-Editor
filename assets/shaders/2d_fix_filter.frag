@@ -5,7 +5,7 @@ out vec4 FragColor;
 
 void main(){
     vec2 texSize = textureSize(SampleTexture, 0);
-    vec2 uv = gl_FragCoord.xy / texSize;
+    vec2 uv = (floor(gl_FragCoord.xy) + vec2(0.5)) / textureSize(SampleTexture, 0);
 
     vec3 result = vec3(0);
     vec2 direction = vec2(1/texSize.x,1/texSize.y);

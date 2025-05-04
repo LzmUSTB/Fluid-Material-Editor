@@ -6,7 +6,7 @@ uniform float Far;
 out vec4 FragColor;
 
 void main() {
-    vec2 uv = gl_FragCoord.xy / textureSize(Depthmap, 0);
+    vec2 uv = (floor(gl_FragCoord.xy) + vec2(0.5)) / textureSize(Depthmap, 0);
     float depth = texture(Depthmap,uv).r;
     //float linearDepth = (depth - Near) / (Far - Near);
     float z = depth * 2.0 - 1.0;

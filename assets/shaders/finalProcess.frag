@@ -17,7 +17,7 @@ vec3 applyRefraction(vec2 uv, vec3 normal, float thickness) {
 }
 
 void main() {
-    vec2 uv = gl_FragCoord.xy / textureSize(sceneColor,0);
+    vec2 uv = (floor(gl_FragCoord.xy) + vec2(0.5)) / textureSize(sceneColor,0);
     
     float thickness = texture(thicknessMap, uv).x;
     

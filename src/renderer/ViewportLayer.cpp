@@ -201,11 +201,12 @@ namespace FMEditor {
 		// GUI: render option
 		ImGui::Begin("Render Option");
 		ImGui::SliderFloat("particle size", &m_particleSize, 0.0f, 0.05f, "%.3f");
-		//ImGui::SliderFloat("filter offset", &m_filterOffset, 0.0f, 100.f, "%.3f");
 		//ImGui::SliderFloat("filter range", &m_filterRange, 0.0f, 100.f, "%.3f");
 		ImGui::SliderFloat("absorption", &m_absorption, 0.0f, 1.f, "%.3f");
 		ImGui::ColorEdit3("fluid color", m_color);
 		ImGui::SliderFloat("reract offset", &refractOffsetAmount, 0.0f, 1.f, "%.3f");
+		ImGui::SliderFloat("filter threshold", &m_filterThreshold, 0.0f, 20.f, "%.3f");
+		ImGui::SliderFloat("filter offset", &m_filterOffset, 0.0f, 10.f, "%.3f");
 		ImGui::SliderInt("filter iterations", &m_filterIterations, 0, 10);
 		ImGui::SliderInt("render result", &m_textureShown, 0, 6);
 		ImGui::End();
@@ -306,9 +307,11 @@ namespace FMEditor {
 		m_PingpongFBO_Depth[1]->ClearBuffer();
 
 		for (int i = 0; i < m_filterIterations; i++) {
-			m_gaussianFilterShader->Bind();
+			m_narrowRangeFilterShader->Bind();
 			// horizontal filter
-			m_gaussianFilterShader->setBool("Horizontal", true);
+			m_narrowRangeFilterShader->setFloat("threshold", m_filterThreshold);
+			m_narrowRangeFilterShader->setFloat("offsetFix", m_filterOffset);
+			m_narrowRangeFilterShader->setBool("Horizontal", true);
 
 			m_PingpongFBO_Thickness[1]->Bind(false);
 			m_PingpongTexture_Thickness[0]->Bind();
@@ -321,7 +324,7 @@ namespace FMEditor {
 			m_PingpongFBO_Depth[1]->Unbind();
 
 			// vertical filter
-			m_gaussianFilterShader->setBool("Horizontal", false);
+			m_narrowRangeFilterShader->setBool("Horizontal", false);
 
 			m_PingpongFBO_Thickness[0]->Bind(false);
 			m_PingpongTexture_Thickness[1]->Bind();
@@ -333,7 +336,7 @@ namespace FMEditor {
 			m_Renderer->DrawQuad();
 			m_PingpongFBO_Depth[0]->Unbind();
 
-			m_gaussianFilterShader->Unbind();
+			m_narrowRangeFilterShader->Unbind();
 
 			// fix glitch
 			m_2dFilterShader->Bind();
