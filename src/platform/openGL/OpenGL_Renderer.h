@@ -21,7 +21,7 @@ namespace FMEditor {
 
 		void BindShader(uint32_t shaderID) override;
 		void BindFramebuffer(uint32_t frameBufferID) override;
-		void BindCubeMap(uint32_t textureID) override;
+		void BindCubeMap(uint32_t textureID, int index) override;
 
 		const char* Get_API_Version() override;
 		const char* Get_Device_Name() override;

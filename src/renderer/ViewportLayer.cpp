@@ -54,6 +54,10 @@ namespace FMEditor {
 
 		glm::mat4 Projection = camera.c_Camera.GetProjectionMatrix();
 		glm::mat4 View = camera.c_Camera.GetViewMatrix();
+		glm::mat4 VP_Inv = glm::inverse(Projection * View);
+		glm::mat4 View_Inv = glm::inverse(View);
+		glm::mat4 Projection_Inv = glm::inverse(Projection);
+		auto cameraPos = camera.c_Camera.GetPosition();
 
 		m_Renderer->EnableDepthMask(true);
 		m_SceneFrameBuffer->Bind();
@@ -122,6 +126,7 @@ namespace FMEditor {
 			m_particleDepthShader->Bind();
 			m_particleDepthShader->setMat4("Projection", Projection);
 			m_particleDepthShader->setMat4("View", View);
+			m_particleDepthShader->setVec3("CameraPos", cameraPos.x, cameraPos.y, cameraPos.z);
 			m_particleDepthShader->setFloat("ParticleRadius", m_particleSize);
 			m_particleDepthShader->setFloat("Near", camera.c_Camera.GetNear());
 			m_particleDepthShader->setFloat("Far", camera.c_Camera.GetFar());
@@ -140,12 +145,38 @@ namespace FMEditor {
 		m_normalMapShader->Bind();
 		m_normalMapShader->setFloat("near", camera.c_Camera.GetNear());
 		m_normalMapShader->setFloat("fov", camera.c_Camera.GetFovRadians());
+		m_normalMapShader->setMat4("inv_View", View_Inv);
+		m_normalMapShader->setMat4("inv_Projection", Projection_Inv);
 		m_normalMapShader->setFloat("aspectRatio", camera.c_Camera.GetAspectRatio());
 		m_PingpongTexture_Depth[0]->Bind();
 		m_Renderer->DrawQuad();
 		m_NormalMapBuffer->Unbind();
 
-		FinalProcess();
+		// final process
+		m_MainFramebuffer->Bind();
+		m_finalProcessShader->Bind();
+
+		m_finalProcessShader->setFloat("near", camera.c_Camera.GetNear());
+		m_finalProcessShader->setFloat("fov", camera.c_Camera.GetFovRadians());
+		m_finalProcessShader->setFloat("aspectRatio", camera.c_Camera.GetAspectRatio());
+		m_finalProcessShader->setFloat("absorption", m_absorption);
+		m_finalProcessShader->setFloat("refractOffsetAmount", m_refractOffset);
+		m_finalProcessShader->setFloat("fresnelScale", m_fresnelScale);
+		m_finalProcessShader->setMat4("inv_View", View_Inv);
+		m_finalProcessShader->setMat4("inv_Projection", Projection_Inv);
+		m_finalProcessShader->setVec3("FluidColor", m_color[0], m_color[1], m_color[2]);
+		m_finalProcessShader->setVec3("LightPosition", m_lightPosition[0], m_lightPosition[1], m_lightPosition[2]);
+		m_finalProcessShader->setVec3("LightColor", m_lightColor[0], m_lightColor[1], m_lightColor[2]);
+
+		m_SceneTexture->Bind(0);
+		m_PingpongTexture_Thickness[0]->Bind(1);
+		m_NormalMapTexture->Bind(2);
+		m_PingpongTexture_Depth[0]->Bind(3);
+		m_Renderer->BindCubeMap(m_skyboxTexture, 4);
+
+		m_Renderer->DrawQuad();
+
+		m_MainFramebuffer->Unbind();
 	}
 
 	void ViewportLayer::OnImguiRender()
@@ -204,11 +235,19 @@ namespace FMEditor {
 		//ImGui::SliderFloat("filter range", &m_filterRange, 0.0f, 100.f, "%.3f");
 		ImGui::SliderFloat("absorption", &m_absorption, 0.0f, 1.f, "%.3f");
 		ImGui::ColorEdit3("fluid color", m_color);
-		ImGui::SliderFloat("reract offset", &refractOffsetAmount, 0.0f, 1.f, "%.3f");
-		ImGui::SliderFloat("filter threshold", &m_filterThreshold, 0.0f, 20.f, "%.3f");
+		ImGui::SliderFloat("refract offset", &m_refractOffset, 0.0f, 1.f, "%.3f");
+		ImGui::SliderFloat("filter threshold", &m_filterThreshold, 0.0f, 0.05f, "%.3f");
 		ImGui::SliderFloat("filter offset", &m_filterOffset, 0.0f, 10.f, "%.3f");
+		ImGui::SliderInt("filter blurSize", &m_blurSize, 0, 50);
 		ImGui::SliderInt("filter iterations", &m_filterIterations, 0, 10);
 		ImGui::SliderInt("render result", &m_textureShown, 0, 6);
+		ImGui::End();
+
+		// GUI: light option
+		ImGui::Begin("Light Option");
+		ImGui::ColorEdit3("light color", m_lightColor);
+		ImGui::DragFloat3("light position", m_lightPosition);
+		ImGui::SliderFloat("fresnel scale", &m_fresnelScale, 0.0f, 1.f, "%.3f");
 		ImGui::End();
 	}
 
@@ -311,6 +350,7 @@ namespace FMEditor {
 			// horizontal filter
 			m_narrowRangeFilterShader->setFloat("threshold", m_filterThreshold);
 			m_narrowRangeFilterShader->setFloat("offsetFix", m_filterOffset);
+			m_narrowRangeFilterShader->setInt("blurSize", m_blurSize);
 			m_narrowRangeFilterShader->setBool("Horizontal", true);
 
 			m_PingpongFBO_Thickness[1]->Bind(false);
@@ -360,15 +400,6 @@ namespace FMEditor {
 
 	void ViewportLayer::FinalProcess()
 	{
-		m_MainFramebuffer->Bind();
-		m_finalProcessShader->Bind();
-		m_finalProcessShader->setFloat("absorption", m_absorption);
-		m_finalProcessShader->setFloat("refractOffsetAmount", refractOffsetAmount);
-		m_finalProcessShader->setVec3("FluidColor", m_color[0], m_color[1], m_color[2]);
-		m_SceneTexture->Bind(0);
-		m_PingpongTexture_Thickness[0]->Bind(1);
-		m_NormalMapTexture->Bind(2);
-		m_Renderer->DrawQuad();
-		m_MainFramebuffer->Unbind();
+
 	}
 }

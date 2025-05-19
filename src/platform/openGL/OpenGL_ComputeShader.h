@@ -20,6 +20,7 @@ namespace FMEditor {
 		void setVec4(const char* name, glm::vec3 origin, float res);
 		void setVec3(const char* name, glm::vec3 vec);
 		void setInt(const char* name, int i);
+		void setIVec3(const char* name, glm::ivec3 vec);
 	private:
 		bool CheckShaderError(GLint shaderID);
 		bool CheckProgramError(GLint programID, GLint compID);

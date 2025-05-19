@@ -21,7 +21,7 @@ layout(std430, binding = 4) buffer FBuffer {
     mat3 F[]; // deformation gradient
 };
 
-uniform int gridRes;
+uniform ivec3 gridRes;
 uniform int gridBoundary;
 uniform float gridSpacing;
 uniform float deltaTime;
@@ -59,7 +59,8 @@ void main() {
         if (any(lessThan(node, ivec3(0))) || any(greaterThanEqual(node, ivec3(gridRes))))
             continue;
 
-        int index = node.x + node.y * gridRes + node.z * gridRes * gridRes;
+        int index = node.x + node.y * gridRes.x + node.z * gridRes.x * gridRes.y;
+
         vec4 grid = gridStatus[index];
         float mass = grid.w;
         if (mass <= 0.) continue;

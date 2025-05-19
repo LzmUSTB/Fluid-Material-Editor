@@ -1518,6 +1518,7 @@
     <None Include="assets\shaders\mlsmpm_p2g_2.comp">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="assets\shaders\sph\sph_density.comp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\cubemap\nx.png">

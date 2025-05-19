@@ -22,14 +22,14 @@ layout(std430, binding = 4) buffer FBuffer {
 };
 
 uniform float deltaTime;
-uniform int gridRes;
+uniform ivec3 gridRes;
 uniform int gridBoundary;
 
 void main() {
     ivec3 id = ivec3(gl_GlobalInvocationID.xyz);
     if (any(greaterThanEqual(id, vec3(gridRes)))) return;
 
-    int index = id.x + gridRes * id.y + gridRes * gridRes * id.z;
+    int index = id.x + gridRes.x * id.y + gridRes.x * gridRes.y * id.z;
     vec4 status = gridStatus[index];
     float mass = status.w;
 
@@ -44,13 +44,13 @@ void main() {
         //if(id.x < boundary || id.x > gridRes - boundary - 1) velocity.x = 0.0;
         //if(id.y < boundary || id.y > gridRes - boundary - 1) velocity.y = 0.0;
         //if(id.z < boundary || id.z > gridRes - boundary - 1) velocity.z = 0.0;
-        if (id.y > gridRes-boundary-1 && velocity.y > 0) velocity.y = 0.0;
+        if (id.y > gridRes.y-boundary-1 && velocity.y > 0) velocity.y = 0.0;
         if (id.y < boundary && velocity.y < 0) velocity.y = 0.0;
 
-        if (id.x > gridRes-boundary-1 && velocity.x > 0) velocity.x = 0.0;
+        if (id.x > gridRes.x-boundary-1 && velocity.x > 0) velocity.x = 0.0;
         if (id.x < boundary && velocity.x < 0) velocity.x = 0.0;
 
-        if (id.z > gridRes-boundary-1 && velocity.z > 0) velocity.z = 0.0;
+        if (id.z > gridRes.z-boundary-1 && velocity.z > 0) velocity.z = 0.0;
         if (id.z < boundary && velocity.z < 0) velocity.z = 0.0;
 
         // Write back

@@ -5,11 +5,11 @@
 namespace FMEditor {
 	PhysicsLayer::PhysicsLayer(entt::registry& registry) :
 		Layer("PhysicsLayer"), m_Registry(registry),
-		m_Paused(true), 
-		m_TimeScale(1.f), 
-		m_GridBoundary(30), 
-		m_Stiffness(10.f), 
-		m_RestDensity(0.45f), 
+		m_Paused(true),
+		m_TimeScale(1.f),
+		m_GridBoundary(30),
+		m_Stiffness(10.f),
+		m_RestDensity(0.25f),
 		m_Viscosity(0.1f)
 	{
 		PI = glm::pi<float>();
@@ -24,12 +24,33 @@ namespace FMEditor {
 		int particleCount = WIDTH * HEIGHT * LENGTH;
 		auto& particleGroup = m_Registry.emplace<C_ParticleGroup>(m_ParticleEntity, particleCount, 1000.f);
 		unsigned int index = 0;
-		for (int i = 0; i < LENGTH; i++) {
+		for (int i = 0; i < LENGTH / 2; i++) {
 			for (int j = 0; j < HEIGHT; j++) {
 				for (int k = 0; k < WIDTH; k++) {
-					float x = -float(WIDTH - 1) / 2.f * interval + i * interval;
-					float y = -float(HEIGHT - 1) / 2.f * interval + j * interval;
-					float z = -float(LENGTH - 1) / 2.f * interval + k * interval;
+					glm::vec3 offset(1 + LENGTH / 2 * interval, 0, 0);
+					float x = offset.x - float(WIDTH - 1) / 2.f * interval + i * interval;
+					float y = offset.y - float(HEIGHT - 1) / 2.f * interval + j * interval;
+					float z = offset.z - float(LENGTH - 1) / 2.f * interval + k * interval;
+					if (i == 0 && j == 0 && k == 0) {
+						FME_DEBUG_LOG_TRACE("particleOrigin: {0}, {1}, {2}", x, y, z);
+					}
+					particleGroup.SetPosition(index, x, y, z);
+					particleGroup.SetVelocityAndMass(index, 0, 0, 0, 1.f);
+					particleGroup.SetDeformationGradient(index, glm::mat3(1.0f));
+					particleGroup.SetAffineVelocityField(index, glm::mat3(0.f));
+					particleGroup.SetPlasticity(index, 0.f);
+					index++;
+				}
+			}
+		}
+
+		for (int i = 0; i < LENGTH / 2; i++) {
+			for (int j = 0; j < HEIGHT; j++) {
+				for (int k = 0; k < WIDTH; k++) {
+					glm::vec3 offset(-1, 0, 0);
+					float x = offset.x - float(WIDTH - 1) / 2.f * interval + i * interval;
+					float y = offset.y - float(HEIGHT - 1) / 2.f * interval + j * interval;
+					float z = offset.z - float(LENGTH - 1) / 2.f * interval + k * interval;
 					if (i == 0 && j == 0 && k == 0) {
 						FME_DEBUG_LOG_TRACE("particleOrigin: {0}, {1}, {2}", x, y, z);
 					}
@@ -44,7 +65,7 @@ namespace FMEditor {
 		}
 
 		m_GridEntity = m_Registry.create();
-		int gridResolution = 128;
+		glm::vec3 gridResolution = glm::vec3(192, 128, 128);
 		auto& grid = m_Registry.emplace<C_Grid>(m_GridEntity, gridResolution, interval * 1.2f, particleCount);
 		FME_DEBUG_LOG_TRACE("gridOrigin: {0}, {1}, {2}", grid.c_GridOrigin.x, grid.c_GridOrigin.y, grid.c_GridOrigin.z);
 
@@ -71,7 +92,7 @@ namespace FMEditor {
 		if (!m_Paused) {
 			// p2g
 			m_MLSMPM_P2G_Shader->Bind();
-			m_MLSMPM_P2G_Shader->setInt("gridRes", grid.c_GridResolution);
+			m_MLSMPM_P2G_Shader->setIVec3("gridRes", grid.c_GridResolution);
 			m_MLSMPM_P2G_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
 			m_MLSMPM_P2G_Shader->setFloat("gridSpacing", grid.c_GridSpacing);
 			m_MLSMPM_P2G_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
@@ -80,7 +101,7 @@ namespace FMEditor {
 
 			// p2g 2
 			m_MLSMPM_P2G_2_Shader->Bind();
-			m_MLSMPM_P2G_2_Shader->setInt("gridRes", grid.c_GridResolution);
+			m_MLSMPM_P2G_2_Shader->setIVec3("gridRes", grid.c_GridResolution);
 			m_MLSMPM_P2G_2_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
 			m_MLSMPM_P2G_2_Shader->setFloat("gridSpacing", grid.c_GridSpacing);
 			m_MLSMPM_P2G_2_Shader->setFloat("stiffness", m_Stiffness);
@@ -92,15 +113,15 @@ namespace FMEditor {
 
 			// grid update
 			m_MLSMPM_SIM_Shader->Bind();
-			m_MLSMPM_SIM_Shader->setInt("gridRes", grid.c_GridResolution);
+			m_MLSMPM_SIM_Shader->setIVec3("gridRes", grid.c_GridResolution);
 			m_MLSMPM_SIM_Shader->setInt("gridBoundary", m_GridBoundary);
 			m_MLSMPM_SIM_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
-			m_MLSMPM_SIM_Shader->Dispatch(16, 16, 16);
+			m_MLSMPM_SIM_Shader->Dispatch(grid.c_GridResolution.x / 8, grid.c_GridResolution.y / 8, grid.c_GridResolution.z / 8);
 			m_MLSMPM_SIM_Shader->Unbind();
 
 			//g2p
 			m_MLSMPM_G2P_Shader->Bind();
-			m_MLSMPM_G2P_Shader->setInt("gridRes", grid.c_GridResolution);
+			m_MLSMPM_G2P_Shader->setIVec3("gridRes", grid.c_GridResolution);
 			m_MLSMPM_G2P_Shader->setInt("gridBoundary", m_GridBoundary);
 			m_MLSMPM_G2P_Shader->setFloat("gridSpacing", grid.c_GridSpacing);
 			m_MLSMPM_G2P_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);

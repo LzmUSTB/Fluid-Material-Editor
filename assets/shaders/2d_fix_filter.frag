@@ -1,6 +1,6 @@
 #version 460 core
 uniform sampler2D SampleTexture;
-
+uniform float blurSize;
 out vec4 FragColor;
 
 void main(){

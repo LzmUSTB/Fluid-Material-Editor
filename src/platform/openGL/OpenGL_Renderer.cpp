@@ -213,9 +213,28 @@ namespace FMEditor {
 		return textureID;
 	}
 
-	void OpenGL_Renderer::BindCubeMap(uint32_t textureID)
+	void OpenGL_Renderer::BindCubeMap(uint32_t textureID, int index)
 	{
-		glActiveTexture(GL_TEXTURE0);
+		switch (index) {
+		case 0:
+			glActiveTexture(GL_TEXTURE0);
+			break;
+		case 1:
+			glActiveTexture(GL_TEXTURE1);
+			break;
+		case 2:
+			glActiveTexture(GL_TEXTURE2);
+			break;
+		case 3:
+			glActiveTexture(GL_TEXTURE3);
+			break;
+		case 4:
+			glActiveTexture(GL_TEXTURE4);
+			break;
+		default:
+			glActiveTexture(GL_TEXTURE0);
+			break;
+		}
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 	}
 

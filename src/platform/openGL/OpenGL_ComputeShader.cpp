@@ -100,6 +100,11 @@ namespace FMEditor {
 		glUniform1i(glGetUniformLocation(m_ID, name), i);
 	}
 
+	void OpenGL_ComputeShader::setIVec3(const char* name, glm::ivec3 vec)
+	{
+		glUniform3i(glGetUniformLocation(m_ID, name), vec.x, vec.y, vec.z);
+	}
+
 	bool OpenGL_ComputeShader::CheckShaderError(GLint shaderID)
 	{
 		GLint isCompiled = 0;

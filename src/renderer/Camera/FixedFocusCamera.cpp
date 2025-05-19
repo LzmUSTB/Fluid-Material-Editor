@@ -22,24 +22,15 @@ namespace FMEditor {
 			m_Front.y = m_Front.y * glm::cos(vScrollDegree) - m_Front.z * glm::sin(vScrollDegree);
 			m_Front.z = m_Front.y * glm::sin(vScrollDegree) + m_Front.z * glm::cos(vScrollDegree);
 		}
-		//glm::mat4 rotMat_h = glm::rotate(glm::mat4(1.0f), hScrollDegree, glm::vec3(0.0f, 1.0f, 0.0f));
-		//glm::mat4 rotMat_v = glm::rotate(glm::mat4(1.0f), vScrollDegree, glm::vec3(1.0f, 0.0f, 0.0f));
-		//glm::vec3 m_Front = glm::vec3(rotMat_h * rotMat_v * glm::vec4(m_Front, 1.0f));
+
 		m_Position = m_Focus - m_Front;
 		UpdateViewMatrix();
 	}
 
 	void FixedFocusCamera::UpdateCameraStatus()
 	{
-		glm::vec3 right = glm::normalize(glm::cross(m_Front, m_WorldUp));
-		glm::vec3 up = glm::normalize(glm::cross(right, m_Front));
-		m_View = glm::lookAt(m_Position, m_Position + m_Front, up);
-		m_Projection = glm::perspective(
-			glm::radians(m_Zoom),
-			m_Width / m_Height,
-			m_Near,
-			m_Far
-		);
+		UpdateViewMatrix();
+		UpdateProjectionMatrix();
 	}
 
 	void FixedFocusCamera::UpdateProjectionMatrix()

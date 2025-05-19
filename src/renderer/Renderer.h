@@ -19,7 +19,7 @@ namespace FMEditor {
 		virtual void EndParticleRender() = 0;
 
 		virtual void BindShader(uint32_t shaderID) = 0;
-		virtual void BindCubeMap(uint32_t textureID) = 0;
+		virtual void BindCubeMap(uint32_t textureID, int index = 0) = 0;
 		virtual void BindFramebuffer(uint32_t frameBufferID) = 0;
 
 		//virtual void Submit(glm::mat4 view, glm::mat4 projection) = 0;

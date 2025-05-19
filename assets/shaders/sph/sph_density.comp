@@ -23,12 +23,9 @@ layout(std430, binding = 4) buffer FBuffer {
     mat3 F[]; // deformation gradient
 };
 
-uniform ivec3 gridRes;
+uniform int gridRes;
 uniform float gridSpacing;
 uniform vec3 gridOrigin;
-uniform float stiffness;            //3.
-uniform float rest_density;         //4.
-uniform float dynamic_viscosity;    //0.1
 uniform float deltaTime; 
 
 void main() {
@@ -51,7 +48,6 @@ void main() {
     w[1] = 0.75 - (fx - 1.0) * (fx - 1.0);
     w[2] = 0.5 * (fx - 0.5) * (fx - 0.5);
 
-    float density = 0.f;
     // loop neighbor nodes
     for (int i = 0; i < 3; ++i)
     for (int j = 0; j < 3; ++j)
@@ -60,42 +56,16 @@ void main() {
         if (any(lessThan(node, ivec3(0))) || any(greaterThanEqual(node, ivec3(gridRes))))
             continue;
 
-        int index = node.x + node.y * gridRes.x + node.z * gridRes.x * gridRes.y;
-
-        float weight = w[i].x * w[j].y * w[k].z;
-        density += weight * gridStatus[index].w;
-    }
-
-    // volume = mass/density
-    float volume = velocities[id].w / density; 
-
-    // pressure
-    float pressure = max(-0.0f, stiffness * (pow(density/rest_density,4.) -1));
-    mat3 stress = mat3(-pressure);
-    mat3 strain = Cp + transpose(Cp);
-    stress += dynamic_viscosity * strain;
-
-    mat3 eq_16_term0 = -volume * 4 * stress * deltaTime;
-
-    // loop neighbor nodes
-    for (int i = 0; i < 3; ++i)
-    for (int j = 0; j < 3; ++j)
-    for (int k = 0; k < 3; ++k) {
-        ivec3 node = base + ivec3(i, j, k);
-        if (any(lessThan(node, ivec3(0))) || any(greaterThanEqual(node, ivec3(gridRes))))
-            continue;
-
-        int index = node.x + node.y * gridRes.x + node.z * gridRes.x * gridRes.y;
-
+        int index = node.x + node.y * gridRes + node.z * gridRes * gridRes;
         vec3 dpos = (vec3(i,j,k) - fx) * dx;
 
         float weight = w[i].x * w[j].y * w[k].z;
-        vec3 force = eq_16_term0 * weight * dpos;
-        //vec3 force = vec3(0);
+        vec3 momentum = (velocities[id].xyz + Cp * dpos) * mass * weight;
 
         // atomic add to grid
-        atomicAdd(gridStatus[index].x, force.x);
-        atomicAdd(gridStatus[index].y, force.y);
-        atomicAdd(gridStatus[index].z, force.z);
+        atomicAdd(gridStatus[index].x, momentum.x);
+        atomicAdd(gridStatus[index].y, momentum.y);
+        atomicAdd(gridStatus[index].z, momentum.z);
+        atomicAdd(gridStatus[index].w, mass * weight);
     }
 }

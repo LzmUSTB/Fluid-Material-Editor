@@ -629,6 +629,7 @@
     <None Include="assets\shaders\mlsmpm_p2g.comp" />
     <None Include="assets\shaders\mlsmpm_p2g_2.comp" />
     <None Include="assets\shaders\mlsmpm_sim.comp" />
+    <None Include="assets\shaders\sph\sph_density.comp" />
     <None Include="assets\shaders\test.comp" />
     <None Include="assets\shaders\calculate_normal.frag" />
     <None Include="assets\shaders\calculate_normal_from_thickness.frag" />

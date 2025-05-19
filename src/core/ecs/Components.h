@@ -57,18 +57,18 @@ namespace FMEditor {
 		// vec3 velocity + float mass
 		std::vector<glm::vec4>c_GridStatus;
 
-		int c_GridResolution;
+		glm::vec3 c_GridResolution;
 		float c_GridSpacing;
 		glm::vec3 c_GridOrigin;
 
-		C_Grid(int gridRes, float gridSpacing, int particleCount) :
-			c_GridStatus(gridRes* gridRes* gridRes),
+		C_Grid(glm::vec3 gridRes, float gridSpacing, int particleCount) :
+			c_GridStatus(gridRes.x* gridRes.y* gridRes.z),
 			c_GridResolution(gridRes),
 			c_GridSpacing(gridSpacing),
-			c_GridOrigin(-gridSpacing* gridRes / 2) {}
+			c_GridOrigin(-gridSpacing / 2 * gridRes) {}
 
 		inline int GetIndex(int x, int y, int z) const {
-			return x + y * c_GridResolution + z * c_GridResolution * c_GridResolution;
+			return x + y * c_GridResolution.x + z * c_GridResolution.y * c_GridResolution.x;
 		}
 	};
 
