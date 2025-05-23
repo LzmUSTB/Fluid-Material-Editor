@@ -99,16 +99,16 @@ namespace FMEditor {
 		float m_particleSize = 0.025f;
 		int m_textureShown = 0;
 		int m_filterIterations = 1;
-		float m_filterRange = 0.f;
 		float m_filterOffset = 0.f;
 		float m_absorption = 0.02f;
 		float m_refractOffset = 0.05f;
-		float m_color[3]{ 0.7,0.92,1 };
+		float m_color[3]{  0.7,0.92,1 };
 		float m_filterThreshold = 0.01f;
 		float m_lightColor[3]{ 1,0.984,0.768 };
 		float m_lightPosition[3]{ 0,3,3 };
 		float m_fresnelScale{ 0.02f };
 		int m_blurSize = 20;
+		int m_shininess = 250;
 	};
 
 }

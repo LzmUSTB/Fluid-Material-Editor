@@ -70,9 +70,15 @@ void main() {
     float volume = velocities[id].w / density; 
 
     // pressure
-    float pressure = max(-0.0f, stiffness * (pow(density/rest_density,4.) -1));
+    float pressure = max(-0.1f, stiffness * (pow(density/rest_density,4.) -1));
+
     mat3 stress = mat3(-pressure);
     mat3 strain = Cp + transpose(Cp);
+    float norm = length(vec3(strain[0]) + vec3(strain[1]) + vec3(strain[2]));
+    float max_strain = 5.0;
+    if (norm > max_strain) {
+        strain *= max_strain / norm;
+    }
     stress += dynamic_viscosity * strain;
 
     mat3 eq_16_term0 = -volume * 4 * stress * deltaTime;
@@ -91,7 +97,6 @@ void main() {
 
         float weight = w[i].x * w[j].y * w[k].z;
         vec3 force = eq_16_term0 * weight * dpos;
-        //vec3 force = vec3(0);
 
         // atomic add to grid
         atomicAdd(gridStatus[index].x, force.x);

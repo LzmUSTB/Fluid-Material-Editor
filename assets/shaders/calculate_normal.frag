@@ -15,9 +15,6 @@ vec3 getViewPos(vec2 uv) {
     float y = -(uv.y * 2.0 - 1.0);
     float depth = texture(LinearDepthMap, uv).r;
 
-    //float tanHalfFov = tan(fov * 0.5);
-    //float viewX = x * z * tanHalfFov * aspectRatio;
-    //loat viewY = y * z * tanHalfFov;
     vec4 ndc = vec4(x,y,0,1);
     ndc.z = -inverse(inv_Projection)[2].z + inverse(inv_Projection)[3].z / depth;
     vec4 viewPos = inv_Projection * ndc;

@@ -34,7 +34,6 @@ void main() {
     float inv_dx = 1.f / dx;
     vec3 gridEnd = vec3(gridSpacing * gridRes) + gridOrigin;
     float mass = velocities[id].w;
-    mat3 Cp = affineC[id];
 
     // grid space position
     vec3 pos = (positions[id].xyz - gridOrigin)/(gridEnd - gridOrigin) * gridRes;
@@ -72,8 +71,8 @@ void main() {
 
         newV += weighted_vel;
         newC += 4.0  * mat3(weighted_vel * dpos.x, weighted_vel * dpos.y, weighted_vel * dpos.z); // Outer product
-
     }
+
     velocities[id].xyz = newV;
     affineC[id] = newC;
 
@@ -96,6 +95,6 @@ void main() {
     if(prePosition.z < BoundaryOrigin.z) velocityFix.z += k * gridSpacing * (BoundaryOrigin.z- prePosition.z);
     if(prePosition.z < BoundaryEnd.z)    velocityFix.z += k * gridSpacing * (BoundaryEnd.z- prePosition.z);
 
-    positions[id].xyz += velocities[id].xyz * deltaTime;
     velocities[id].xyz += velocityFix;
+    positions[id].xyz += velocities[id].xyz * deltaTime;
 }

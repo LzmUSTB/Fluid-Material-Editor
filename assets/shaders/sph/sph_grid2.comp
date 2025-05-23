@@ -1,0 +1,63 @@
+#version 460 core
+//#extension GL_NV_shader_atomic_float : enable
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(std430, binding = 0) buffer PosBuffer {
+    vec4 positions[]; 
+};
+
+layout(std430, binding = 1) buffer VBuffer {
+    vec4 velocities[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 2) buffer GridBuffer {
+    vec4 gridStatus[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 3) buffer CBuffer {
+    mat3 affineC[]; // APIC affine velocity field
+};
+
+layout(std430, binding = 4) buffer FBuffer {
+    mat3 F[]; // deformation gradient
+};
+
+layout(std430, binding = 5) buffer hashBuffer {
+    uint hashCount[];
+};
+
+layout(std430, binding = 6) buffer hashBuffer2 {
+    uint hashCount2[];
+};
+
+layout(std430, binding = 7) buffer indexBuffer {
+    uint indices[];
+};
+
+layout(std430, binding = 8) buffer offsetBuffer {
+    uint offset[];
+};
+
+uniform float cellSize;
+uniform vec3 gridOrigin;
+uniform ivec3 gridRes;
+uniform int particleCount;
+
+uint computeCellHash(vec3 pos){
+    vec3 gridEnd = vec3(cellSize * gridRes) + gridOrigin;
+    vec3 gridSpacePos = (pos - gridOrigin)/(gridEnd - gridOrigin) * gridRes;
+    ivec3 cell = ivec3(floor(gridSpacePos));
+    return uint(cell.x + cell.y * gridRes.x + cell.z * gridRes.x*gridRes.y);
+}
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= particleCount) return;
+
+    vec3 pos = positions[id].xyz;
+
+    uint cellHash = computeCellHash(pos);
+    uint localIndex = atomicAdd(hashCount2[cellHash], 1);
+    indices[offset[cellHash] + localIndex] = id;
+}

@@ -12,12 +12,10 @@ uniform float R_screen_coefficient;
 
 out float particleRadius;
 out float viewPosZ;
-out float worldDepth;
 
 void main() {
-    vec4 pos = positions[gl_InstanceID];
+    vec4 pos = vec4(positions[gl_InstanceID].xyz, 1);
 
-    worldDepth = length(pos.xyz - CameraPos);
     vec4 viewPos = View * pos;
     float R_screen = ParticleRadius * R_screen_coefficient / -viewPos.z;
 

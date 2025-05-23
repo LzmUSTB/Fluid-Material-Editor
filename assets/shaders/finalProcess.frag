@@ -11,6 +11,7 @@ uniform float refractOffsetAmount;
 uniform vec3 FluidColor;
 uniform vec3 LightColor;
 uniform vec3 LightPosition;             // world space position
+uniform int Shininess;
 
 uniform float near;               
 uniform float fov;                
@@ -22,12 +23,6 @@ uniform mat4x4 inv_Projection;
 uniform float fresnelScale;             // 0~1
 
 out vec4 FragColor;
-
-vec3 applyRefraction(vec2 uv, vec3 normal, float thickness) {
-    vec2 refractOffset = normal.xy * thickness * refractOffsetAmount; 
-    vec3 bgColor = texture(sceneColor, uv + refractOffset).rgb;
-    return bgColor;
-}
 
 vec3 getViewPos(vec2 uv,float depth) {
     float x = (uv.x * 2.0 - 1.0);
@@ -60,22 +55,19 @@ void main() {
     // Bling-Phong
     vec3 halfDir = normalize(lightDir - viewDir);
     float diff = max(dot(normal, lightDir), 0.0);
-    float spec = pow(max(dot(normal, halfDir), 0.0), 250.0);
+    float spec = pow(max(dot(normal, halfDir), 0.0), Shininess);
 
     vec3 diffuse = FluidColor * diff;
     vec3 specular = LightColor * spec;
 
+    // refraction
     vec3 refractDir = refract(-viewDir, normal, 0.75);
     vec4 offsetPos = inverse(inv_Projection) * vec4(refractDir,1);
-    vec2 offset = normal.xy * texelSize;
-    //vec2 offset = (offsetPos.xyz/offsetPos.w).xy;
+    vec2 offset = (normal.xy*0.5+0.5) * refractOffsetAmount;
     vec3 transmittance = exp(-thickness * (1-FluidColor)); 
     vec3 refractColor = texture(sceneColor, uv+offset).xyz * transmittance;
-    //vec3 refractColor = applyRefraction(uv, normal, thickness);
 
-    //float alpha = 1.0 - exp(-thickness * absorption);
-    //refractColor = mix(refractColor, diffuse, alpha);
-
+    // reflection
     vec3 reflectDir = reflect(-viewDir, normal);
     vec3 reflectDirWorld = (inv_View * vec4(reflectDir, 0.0)).xyz;
     vec3 reflectColor = texture(Skybox,reflectDirWorld).xyz;

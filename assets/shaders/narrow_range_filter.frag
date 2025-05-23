@@ -38,10 +38,6 @@ void main() {
             continue;
         }
 
-        //if(value < 0.001 || value_i < 0.001){
-        //    continue;
-        //}
-        
         ivec2 uvOffset = Horizontal ? ivec2(i,0) : ivec2(0,i);
         float weight = GaussianBlurWeight(uvOffset,sigma2);
 

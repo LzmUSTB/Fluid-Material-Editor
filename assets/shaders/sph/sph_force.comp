@@ -1,0 +1,130 @@
+#version 460 core
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(std430, binding = 0) buffer PosBuffer {
+    vec4 positions[]; // vec3 positions + float density
+};
+
+layout(std430, binding = 1) buffer VBuffer {
+    vec4 velocities[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 2) buffer GridBuffer {
+    vec4 gridStatus[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 3) buffer CBuffer {
+    mat3 affineC[]; // APIC affine velocity field
+};
+
+layout(std430, binding = 4) buffer FBuffer {
+    mat3 F[]; // deformation gradient
+};
+
+layout(std430, binding = 5) buffer hashBuffer {
+    uint hashCount[];
+};
+
+layout(std430, binding = 6) buffer hashBuffer2 {
+    uint hashCount2[];
+};
+
+layout(std430, binding = 7) buffer indexBuffer {
+    uint indices[];
+};
+
+layout(std430, binding = 8) buffer offsetBuffer {
+    uint offset[];
+};
+
+layout(std430, binding = 9) buffer forceBuffer {
+    vec4 force[];   //vec3 force + float nearDensity
+};
+
+uniform ivec3 gridRes;
+uniform vec3 gridOrigin;
+uniform int particleCount;
+uniform float restDensity;
+uniform float stiffness;
+uniform float nearStiffness;
+uniform float viscosity;
+uniform float h; // smoothing radius
+
+float densityKernelGradient(float r, float h){
+    float factor = 45.0 / (3.1415926535 * pow(h, 6.0));
+    return factor * pow(h - r, 2);
+}
+
+float nearDensityKernelGradient(float r, float h){
+    float factor = 45.0 / (3.1415926535 * pow(h, 5.0));
+    return factor * pow(h - r, 2);
+}
+
+float viscosityKernelLaplacian(float r, float h){
+    float factor = 45.0 / (3.1415926535 * pow(h, 6.0));
+    return factor * (h-r);
+}
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= particleCount) return;
+
+    vec3 pi = positions[i].xyz;
+    float mass = velocities[i].w;
+    float density_i = positions[i].w;
+    float nearDensity_i = force[i].w;
+
+    vec3 f_pressure = vec3(0.0);
+    vec3 f_viscosity = vec3(0.0);
+
+    float cellSize = h;
+
+    vec3 gridEnd = vec3(cellSize * gridRes) + gridOrigin;
+    vec3 gridSpacePos = (pi - gridOrigin)/(gridEnd - gridOrigin) * gridRes;
+    ivec3 baseCell = ivec3(floor(gridSpacePos));
+
+    float pressure_i = stiffness * (density_i - restDensity);
+    float nearPressure_i = nearStiffness * nearDensity_i;
+
+    for (int dx = -1; dx <= 1; ++dx)
+    for (int dy = -1; dy <= 1; ++dy)
+    for (int dz = -1; dz <= 1; ++dz) {
+        ivec3 neighborCell = baseCell + ivec3(dx, dy, dz);
+        if (any(lessThan(neighborCell, ivec3(0))) || any(greaterThanEqual(neighborCell, gridRes))) continue;
+
+        uint hash = uint(neighborCell.x + neighborCell.y * gridRes.x + neighborCell.z * gridRes.x * gridRes.y);
+        uint start = offset[hash];
+        uint end = start + hashCount[hash];
+
+        for (uint j = start; j < end; ++j) {
+            uint neighborIdx = indices[j];
+            if (neighborIdx == i) continue;
+
+            vec3 pj = positions[neighborIdx].xyz;
+            float density_j = positions[neighborIdx].w;
+            float nearDensity_j = force[neighborIdx].w;
+            if(density_j == 0 || nearDensity_j ==0 ) continue;
+
+            vec3 rij = pi - pj;
+            float rLen = length(rij);
+            if (rLen >= h || 1e-32 > rLen) continue;
+
+            float pressure_j = stiffness * (density_j - restDensity);
+            float nearPressure_j = nearStiffness * nearDensity_j;
+        
+            float sharedPressure = (pressure_i + pressure_j) / 2;
+            float nearSharedPressure = (nearPressure_i + nearPressure_j) / 2;
+            vec3 dir = normalize(pj-pi);
+
+            f_pressure += -sharedPressure * mass * dir * densityKernelGradient(rLen, h) / density_j;
+            f_pressure += -nearSharedPressure * mass * dir * nearDensityKernelGradient(rLen, h) / nearDensity_j;
+
+            vec3 relativeSpeed = velocities[neighborIdx].xyz - velocities[i].xyz;
+            f_viscosity += mass * relativeSpeed * viscosityKernelLaplacian(rLen, h)/density_j;
+        }
+    }
+
+    vec3 f_gravity = vec3(0,-9.8,0) * density_i;
+    f_viscosity *= viscosity;
+    force[i].xyz = f_pressure + f_viscosity + f_gravity;
+}

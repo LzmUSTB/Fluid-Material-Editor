@@ -1,10 +1,8 @@
 #version 460 core
-#extension GL_NV_shader_atomic_float : enable
-
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
 layout(std430, binding = 0) buffer PosBuffer {
-    vec4 positions[];
+    vec4 positions[];  // vec3 positions + float density
 };
 
 layout(std430, binding = 1) buffer VBuffer {
@@ -23,49 +21,76 @@ layout(std430, binding = 4) buffer FBuffer {
     mat3 F[]; // deformation gradient
 };
 
-uniform int gridRes;
-uniform float gridSpacing;
+layout(std430, binding = 5) buffer hashBuffer {
+    uint hashCount[];
+};
+
+layout(std430, binding = 6) buffer hashBuffer2 {
+    uint hashCount2[];
+};
+
+layout(std430, binding = 7) buffer indexBuffer {
+    uint indices[];
+};
+
+layout(std430, binding = 8) buffer offsetBuffer {
+    uint offset[];
+};
+
+layout(std430, binding = 9) buffer forceBuffer {
+    vec4 force[];   //vec3 force + float nearDensity
+};
+
+uniform float cellSize;
+uniform ivec3 gridRes;
+uniform int particleCount;
 uniform vec3 gridOrigin;
-uniform float deltaTime; 
+
+float densityPoly6(float r2, float h) {
+    float factor = 315.0 / (64.0 * 3.1415926535 * pow(h, 9.0));
+    return factor * pow(h * h - r2, 3.0);
+}
+
+float nearDensityPoly6(float r, float h) {
+    float factor = 15.0 / (3.1415926535 * pow(h, 6.0));
+    return factor * pow(h - r, 3.0);
+}
 
 void main() {
     uint id = gl_GlobalInvocationID.x;
+    if (id >= particleCount) return;
 
-    float dx = 1.f / float(gridRes);
-    float inv_dx = 1.f / dx;
-    vec3 gridEnd = vec3(gridSpacing * gridRes) + gridOrigin;
-    float mass = velocities[id].w;
-    mat3 Cp = affineC[id];
+    vec3 pi = positions[id].xyz;
+    float density = 0.0;
+    float nearDensity = 0.0;
+    float h = cellSize;
 
-    // grid space position
-    vec3 pos = (positions[id].xyz - gridOrigin)/(gridEnd - gridOrigin) * gridRes;
-    ivec3 base = ivec3(floor(pos - 0.5));
-    vec3 fx = pos - base;
+    vec3 gridEnd = vec3(cellSize * gridRes) + gridOrigin;
+    vec3 gridSpacePos = (pi - gridOrigin)/(gridEnd - gridOrigin) * gridRes;
+    ivec3 baseCell = ivec3(floor(gridSpacePos));
 
-    // B-spline weights
-    vec3 w[3];
-    w[0] = 0.5 * (1.5 - fx) * (1.5 - fx);
-    w[1] = 0.75 - (fx - 1.0) * (fx - 1.0);
-    w[2] = 0.5 * (fx - 0.5) * (fx - 0.5);
+    for (int dx = -1; dx <= 1; ++dx)
+    for (int dy = -1; dy <= 1; ++dy)
+    for (int dz = -1; dz <= 1; ++dz) {
+        ivec3 neighborCell = baseCell + ivec3(dx, dy, dz);
+        if (any(lessThan(neighborCell, ivec3(0))) || any(greaterThanEqual(neighborCell, gridRes))) continue;
 
-    // loop neighbor nodes
-    for (int i = 0; i < 3; ++i)
-    for (int j = 0; j < 3; ++j)
-    for (int k = 0; k < 3; ++k) {
-        ivec3 node = base + ivec3(i, j, k);
-        if (any(lessThan(node, ivec3(0))) || any(greaterThanEqual(node, ivec3(gridRes))))
-            continue;
+        uint hash = uint(neighborCell.x + neighborCell.y * gridRes.x + neighborCell.z * gridRes.x * gridRes.y);
+        uint start = offset[hash];
+        uint end = start + hashCount[hash];
 
-        int index = node.x + node.y * gridRes + node.z * gridRes * gridRes;
-        vec3 dpos = (vec3(i,j,k) - fx) * dx;
-
-        float weight = w[i].x * w[j].y * w[k].z;
-        vec3 momentum = (velocities[id].xyz + Cp * dpos) * mass * weight;
-
-        // atomic add to grid
-        atomicAdd(gridStatus[index].x, momentum.x);
-        atomicAdd(gridStatus[index].y, momentum.y);
-        atomicAdd(gridStatus[index].z, momentum.z);
-        atomicAdd(gridStatus[index].w, mass * weight);
+        for (uint j = start; j < end; ++j) {
+            uint neighborIdx = indices[j];
+            vec3 pj = positions[neighborIdx].xyz;
+            vec3 rij = pi - pj;
+            float r2 = dot(rij, rij);
+            if (r2 < h * h) {
+                density += densityPoly6(r2, h);
+                nearDensity += nearDensityPoly6(sqrt(r2),h);
+            }
+        }
     }
+
+    positions[id].w = density;
+    force[id].w = nearDensity;
 }

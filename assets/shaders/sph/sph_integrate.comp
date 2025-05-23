@@ -1,0 +1,87 @@
+#version 460 core
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(std430, binding = 0) buffer PosBuffer {
+    vec4 positions[]; // vec3 positions + float density
+};
+
+layout(std430, binding = 1) buffer VBuffer {
+    vec4 velocities[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 2) buffer GridBuffer {
+    vec4 gridStatus[]; // vec3 velocity + float mass
+};
+
+layout(std430, binding = 3) buffer CBuffer {
+    mat3 affineC[]; // APIC affine velocity field
+};
+
+layout(std430, binding = 4) buffer FBuffer {
+    mat3 F[]; // deformation gradient
+};
+
+layout(std430, binding = 5) buffer hashBuffer {
+    uint hashCount[];
+};
+
+layout(std430, binding = 6) buffer hashBuffer2 {
+    uint hashCount2[];
+};
+
+layout(std430, binding = 7) buffer indexBuffer {
+    uint indices[];
+};
+
+layout(std430, binding = 8) buffer offsetBuffer {
+    uint offset[];
+};
+
+layout(std430, binding = 9) buffer forceBuffer {
+    vec4 force[];   //vec3 force + float nearDensity
+};
+
+uniform int particleCount;
+uniform float deltaTime;
+uniform float cellSize;
+uniform int gridBoundary;
+uniform vec3 gridOrigin;
+uniform ivec3 gridRes;
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= particleCount) return;
+
+
+    if (positions[id].w != 0.0) {
+        vec3 a = force[id].xyz / positions[id].w;
+
+        vec3 pos = positions[id].xyz;
+        float wallStiffness = 2000.0;
+
+        vec3 gridEnd = vec3(cellSize * gridRes) + gridOrigin;
+        vec3 boxMin = gridOrigin + gridBoundary * cellSize;
+        vec3 boxMax = gridEnd - gridBoundary * cellSize; 
+        vec3 boxHalfSize = (boxMax-boxMin)/2; 
+
+        float xPlusDist = boxHalfSize.x - pos.x;
+        float xMinusDist = boxHalfSize.x + pos.x;
+        float yPlusDist = boxHalfSize.y - pos.y;
+        float yMinusDist = boxHalfSize.y + pos.y;
+        float zPlusDist = boxHalfSize.z - pos.z;
+        float zMinusDist = boxHalfSize.z + pos.z;
+
+        vec3 xPlusForce  = vec3( 1.0, 0.0, 0.0) * wallStiffness * min(xPlusDist, 0.0);
+        vec3 xMinusForce = vec3(-1.0, 0.0, 0.0) * wallStiffness * min(xMinusDist, 0.0);
+        vec3 yPlusForce  = vec3(0.0,  1.0, 0.0) * wallStiffness * min(yPlusDist, 0.0);
+        vec3 yMinusForce = vec3(0.0, -1.0, 0.0) * wallStiffness * min(yMinusDist, 0.0);
+        vec3 zPlusForce  = vec3(0.0, 0.0,  1.0) * wallStiffness * min(zPlusDist, 0.0);
+        vec3 zMinusForce = vec3(0.0, 0.0, -1.0) * wallStiffness * min(zMinusDist, 0.0);
+
+        vec3 wallForce = xPlusForce + xMinusForce + yPlusForce + yMinusForce + zPlusForce + zMinusForce;
+        a += wallForce;
+
+        velocities[id].xyz += deltaTime * a;
+        positions[id].xyz += deltaTime * velocities[id].xyz;
+    }
+}

@@ -17,6 +17,9 @@ namespace FMEditor {
 		void OnImguiRender() override;
 	private:
 		void LoadResources();
+		void MlsmpmMethod(float deltaTime);
+		void SphMethod(float deltaTime);
+		void ReadPly(float deltaTime);
 
 		template<typename T>
 		inline uint32_t CreateSSBO(std::vector<T>& list)
@@ -34,7 +37,7 @@ namespace FMEditor {
 		{
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
 			glBufferData(GL_SHADER_STORAGE_BUFFER, list.size() * sizeof(T), list.data(), GL_DYNAMIC_COPY);
-			FME_DEBUG_LOG_INFO("[PhysicsLayer.h]: SSBO updated:{0},{1}", sizeof(T), list.size());
+			//FME_DEBUG_LOG_INFO("[PhysicsLayer.h]: SSBO updated:{0},{1}", sizeof(T), list.size());
 			return ssbo;
 		}
 
@@ -61,11 +64,22 @@ namespace FMEditor {
 		uint32_t m_DeformationGradientSSBO;
 		uint32_t m_AffineVelocityFieldSSBO;
 
+		uint32_t m_SPH_HashCountSSBO;
+		uint32_t m_SPH_HashCount_2_SSBO;
+		uint32_t m_SPH_IndexSSBO;
+		uint32_t m_SPH_OffsetSSBO;
+		uint32_t m_SPH_ForceSSBO;
+
 		// compute shaders
 		Scope<OpenGL_ComputeShader> m_MLSMPM_P2G_Shader;
 		Scope<OpenGL_ComputeShader> m_MLSMPM_P2G_2_Shader;
 		Scope<OpenGL_ComputeShader> m_MLSMPM_SIM_Shader;
 		Scope<OpenGL_ComputeShader> m_MLSMPM_G2P_Shader;
+		Scope<OpenGL_ComputeShader> m_SPH_Grid1_Shader;
+		Scope<OpenGL_ComputeShader> m_SPH_Grid2_Shader;
+		Scope<OpenGL_ComputeShader> m_SPH_Density_Shader;
+		Scope<OpenGL_ComputeShader> m_SPH_Force_Shader;
+		Scope<OpenGL_ComputeShader> m_SPH_Integrate_Shader;
 
 		// simulation settings
 		bool m_Paused;

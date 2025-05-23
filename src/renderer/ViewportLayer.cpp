@@ -73,7 +73,6 @@ namespace FMEditor {
 				m_Renderer->BindCubeMap(m_skyboxTexture);
 				m_skyboxShader->setInt("Skybox", 0);
 				m_Renderer->DrawMesh(object.c_Mesh);
-
 			}
 			else if (object.c_RenderType == FME_RIGIDBODY) {
 				m_Renderer->EnableDepthMask(true);
@@ -162,6 +161,7 @@ namespace FMEditor {
 		m_finalProcessShader->setFloat("absorption", m_absorption);
 		m_finalProcessShader->setFloat("refractOffsetAmount", m_refractOffset);
 		m_finalProcessShader->setFloat("fresnelScale", m_fresnelScale);
+		m_finalProcessShader->setInt("Shininess", m_shininess);
 		m_finalProcessShader->setMat4("inv_View", View_Inv);
 		m_finalProcessShader->setMat4("inv_Projection", Projection_Inv);
 		m_finalProcessShader->setVec3("FluidColor", m_color[0], m_color[1], m_color[2]);
@@ -217,7 +217,7 @@ namespace FMEditor {
 		if (ImGui::Begin("Renderer Info", &m_ShowRendererInfo, window_flags)) {
 			ImGui::Text("OpenGL: %s", m_Renderer->Get_API_Version());	// TODO
 			ImGui::Text("Device: %s", m_Renderer->Get_Device_Name());
-			ImGui::Text("Maximum SSBOs: %d", m_Renderer->Get_MaximumSSBO());
+			//ImGui::Text("Maximum SSBOs: %d", m_Renderer->Get_MaximumSSBO());
 			ImGui::Text("FrameRate: %.f FPS", m_Counter->m_FPS);
 		}
 		ImGui::End();
@@ -232,15 +232,14 @@ namespace FMEditor {
 		// GUI: render option
 		ImGui::Begin("Render Option");
 		ImGui::SliderFloat("particle size", &m_particleSize, 0.0f, 0.05f, "%.3f");
-		//ImGui::SliderFloat("filter range", &m_filterRange, 0.0f, 100.f, "%.3f");
 		ImGui::SliderFloat("absorption", &m_absorption, 0.0f, 1.f, "%.3f");
 		ImGui::ColorEdit3("fluid color", m_color);
 		ImGui::SliderFloat("refract offset", &m_refractOffset, 0.0f, 1.f, "%.3f");
-		ImGui::SliderFloat("filter threshold", &m_filterThreshold, 0.0f, 0.05f, "%.3f");
+		ImGui::SliderFloat("filter threshold", &m_filterThreshold, 0.0f, 0.01f, "%.5f");
 		ImGui::SliderFloat("filter offset", &m_filterOffset, 0.0f, 10.f, "%.3f");
 		ImGui::SliderInt("filter blurSize", &m_blurSize, 0, 50);
 		ImGui::SliderInt("filter iterations", &m_filterIterations, 0, 10);
-		ImGui::SliderInt("render result", &m_textureShown, 0, 6);
+		ImGui::SliderInt("render result", &m_textureShown, 0, 4);
 		ImGui::End();
 
 		// GUI: light option
@@ -248,6 +247,7 @@ namespace FMEditor {
 		ImGui::ColorEdit3("light color", m_lightColor);
 		ImGui::DragFloat3("light position", m_lightPosition);
 		ImGui::SliderFloat("fresnel scale", &m_fresnelScale, 0.0f, 1.f, "%.3f");
+		ImGui::SliderInt("specular shininess", &m_shininess, 1, 250);
 		ImGui::End();
 	}
 
@@ -328,11 +328,11 @@ namespace FMEditor {
 		case 0:
 			return m_RenderTexture->GetID();
 		case 1:
-			return m_PingpongTexture_Thickness[0]->GetID();
-		case 2:
-			return m_PingpongTexture_Depth[0]->GetID();
-		case 3:
 			return m_NormalMapTexture->GetID();
+		case 2:
+			return m_PingpongTexture_Thickness[0]->GetID();
+		case 3:
+			return m_PingpongTexture_Depth[0]->GetID();
 		case 4:
 			return m_SceneTexture->GetID();
 		default:

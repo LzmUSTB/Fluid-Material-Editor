@@ -2,7 +2,6 @@
 
 in float viewPosZ;
 in float particleRadius;
-in float worldDepth;
 uniform float Near; 
 uniform float Far;  
 out float fragDepth;
@@ -14,8 +13,7 @@ void main() {
     float depth = sqrt(1.0 - dist);
 
     float offset_z = depth * particleRadius;
-    float current_z = viewPosZ - offset_z;
-    //float linearDepth = worldDepth - offset_z;
-   float linearDepth = (2.0*Near*Far)/(Far+Near-current_z*(Far-Near)); 
+    float current_z = (viewPosZ - offset_z)*2-1;
+    float linearDepth = (2.0*Near*Far)/(Far+Near-current_z*(Far-Near)); 
     fragDepth = linearDepth;
 }
