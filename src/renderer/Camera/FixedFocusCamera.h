@@ -10,6 +10,9 @@ namespace FMEditor {
 	private:
 		glm::vec3 m_Focus;
 		glm::vec3 m_Front;
+		float m_Distance;
+		float m_Yaw;
+		float m_Pitch;
 
 		void UpdateCameraStatus() override;
 		void UpdateProjectionMatrix() override;

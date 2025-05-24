@@ -5,6 +5,7 @@ layout(std430, binding = 0) buffer PosBuffer {
 };
 
 uniform mat4 View;
+uniform mat4 Model;
 uniform mat4 Projection;
 uniform vec3 CameraPos;
 uniform float ParticleRadius;
@@ -14,7 +15,7 @@ out float particleRadius;
 out float viewPosZ;
 
 void main() {
-    vec4 pos = vec4(positions[gl_InstanceID].xyz, 1);
+    vec4 pos = Model * vec4(positions[gl_InstanceID].xyz, 1);
 
     vec4 viewPos = View * pos;
     float R_screen = ParticleRadius * R_screen_coefficient / -viewPos.z;

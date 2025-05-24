@@ -80,7 +80,7 @@
       <PrecompiledHeaderFile>fmepch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;FME_PLATFORM_WINDOWS;PE_DEBUG;PE_ENABLE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendors\spdlog\include;vendors\entt;vendors\glfw\include;vendors\glad\include;vendors\imgui\include;vendors\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendors\spdlog\include;vendors\entt;vendors\glfw\include;vendors\glad\include;vendors\imgui\include;vendors\glm;vendors\tinyply\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -100,7 +100,7 @@
       <PrecompiledHeaderFile>fmepch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;FME_PLATFORM_WINDOWS;PE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendors\spdlog\include;vendors\entt;vendors\glfw\include;vendors\glad\include;vendors\imgui\include;vendors\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendors\spdlog\include;vendors\entt;vendors\glfw\include;vendors\glad\include;vendors\imgui\include;vendors\glm;vendors\tinyply\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -120,7 +120,7 @@
       <PrecompiledHeaderFile>fmepch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;FME_PLATFORM_WINDOWS;PE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendors\spdlog\include;vendors\entt;vendors\glfw\include;vendors\glad\include;vendors\imgui\include;vendors\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendors\spdlog\include;vendors\entt;vendors\glfw\include;vendors\glad\include;vendors\imgui\include;vendors\glm;vendors\tinyply\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -139,11 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\platform\openGL\OpenGL_Texture.h" />
-    <ClInclude Include="src\platform\openGL\OpenGL_FrameBuffer.h" />
-    <ClInclude Include="src\renderer\FrameBuffer.h" />
-    <ClInclude Include="src\platform\openGL\OpenGL_ComputeShader.h" />
-    <ClInclude Include="src\simulation\PhysicsLayer.h" />
     <ClInclude Include="src\core\Application.h" />
     <ClInclude Include="src\core\Layer.h" />
     <ClInclude Include="src\core\LayerStack.h" />
@@ -157,17 +152,22 @@
     <ClInclude Include="src\core\logger\LogLayer.h" />
     <ClInclude Include="src\core\stb_image.h" />
     <ClInclude Include="src\fmepch.h" />
+    <ClInclude Include="src\platform\openGL\OpenGL_ComputeShader.h" />
+    <ClInclude Include="src\platform\openGL\OpenGL_FrameBuffer.h" />
     <ClInclude Include="src\platform\openGL\OpenGL_Renderer.h" />
     <ClInclude Include="src\platform\openGL\OpenGL_Shader.h" />
+    <ClInclude Include="src\platform\openGL\OpenGL_Texture.h" />
     <ClInclude Include="src\platform\windows\WindowsWindow.h" />
     <ClInclude Include="src\renderer\Camera\Camera.h" />
     <ClInclude Include="src\renderer\Camera\FixedFocusCamera.h" />
     <ClInclude Include="src\renderer\Camera\MoveCamera.h" />
+    <ClInclude Include="src\renderer\FrameBuffer.h" />
     <ClInclude Include="src\renderer\Mesh.h" />
     <ClInclude Include="src\renderer\Renderer.h" />
     <ClInclude Include="src\renderer\Shader.h" />
-    <ClInclude Include="src\renderer\ViewportLayer.h" />
     <ClInclude Include="src\renderer\Texture.h" />
+    <ClInclude Include="src\renderer\ViewportLayer.h" />
+    <ClInclude Include="src\simulation\PhysicsLayer.h" />
     <ClInclude Include="vendors\glm\glm\common.hpp" />
     <ClInclude Include="vendors\glm\glm\detail\_features.hpp" />
     <ClInclude Include="vendors\glm\glm\detail\_fixes.hpp" />
@@ -588,11 +588,6 @@
     <ClInclude Include="vendors\glm\glm\vector_relational.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\platform\openGL\OpenGL_Texture.cpp" />
-    <ClCompile Include="src\platform\openGL\OpenGL_FrameBuffer.cpp" />
-    <ClCompile Include="src\renderer\FrameBuffer.cpp" />
-    <ClCompile Include="src\platform\openGL\OpenGL_ComputeShader.cpp" />
-    <ClCompile Include="src\simulation\PhysicsLayer.cpp" />
     <ClCompile Include="src\core\Application.cpp" />
     <ClCompile Include="src\core\Layer.cpp" />
     <ClCompile Include="src\core\LayerStack.cpp" />
@@ -608,47 +603,52 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\platform\openGL\OpenGL_ComputeShader.cpp" />
+    <ClCompile Include="src\platform\openGL\OpenGL_FrameBuffer.cpp" />
     <ClCompile Include="src\platform\openGL\OpenGL_Renderer.cpp" />
     <ClCompile Include="src\platform\openGL\OpenGL_Shader.cpp" />
+    <ClCompile Include="src\platform\openGL\OpenGL_Texture.cpp" />
     <ClCompile Include="src\platform\windows\WindowsWindow.cpp" />
     <ClCompile Include="src\renderer\Camera\Camera.cpp" />
     <ClCompile Include="src\renderer\Camera\FixedFocusCamera.cpp" />
     <ClCompile Include="src\renderer\Camera\MoveCamera.cpp" />
+    <ClCompile Include="src\renderer\FrameBuffer.cpp" />
     <ClCompile Include="src\renderer\Mesh.cpp" />
     <ClCompile Include="src\renderer\Renderer.cpp" />
     <ClCompile Include="src\renderer\Shader.cpp" />
-    <ClCompile Include="src\renderer\ViewportLayer.cpp" />
     <ClCompile Include="src\renderer\Texture.cpp" />
+    <ClCompile Include="src\renderer\ViewportLayer.cpp" />
+    <ClCompile Include="src\simulation\PhysicsLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\fonts\OpenSans-Bold.ttf" />
     <None Include="assets\shaders\2d_fix_filter.frag" />
     <None Include="assets\shaders\billboard.frag" />
     <None Include="assets\shaders\billboard.vert" />
+    <None Include="assets\shaders\calculate_normal.frag" />
+    <None Include="assets\shaders\calculate_normal_from_thickness.frag" />
+    <None Include="assets\shaders\finalProcess.frag" />
+    <None Include="assets\shaders\gaussian_filter.frag" />
+    <None Include="assets\shaders\linear_depth.frag" />
     <None Include="assets\shaders\mlsmpm\mlsmpm_g2p.comp" />
     <None Include="assets\shaders\mlsmpm\mlsmpm_p2g.comp" />
     <None Include="assets\shaders\mlsmpm\mlsmpm_p2g_2.comp" />
     <None Include="assets\shaders\mlsmpm\mlsmpm_sim.comp" />
+    <None Include="assets\shaders\narrow_range_filter.frag" />
+    <None Include="assets\shaders\particle_depth.frag" />
+    <None Include="assets\shaders\particle_thickness.frag" />
+    <None Include="assets\shaders\particle_thickness.vert" />
+    <None Include="assets\shaders\point.frag" />
+    <None Include="assets\shaders\point.vert" />
+    <None Include="assets\shaders\postprocess.vert" />
+    <None Include="assets\shaders\skybox.frag" />
+    <None Include="assets\shaders\skybox.vert" />
     <None Include="assets\shaders\sph\sph_density.comp" />
     <None Include="assets\shaders\sph\sph_force.comp" />
     <None Include="assets\shaders\sph\sph_grid1.comp" />
     <None Include="assets\shaders\sph\sph_grid2.comp" />
     <None Include="assets\shaders\sph\sph_integrate.comp" />
     <None Include="assets\shaders\test.comp" />
-    <None Include="assets\shaders\calculate_normal.frag" />
-    <None Include="assets\shaders\calculate_normal_from_thickness.frag" />
-    <None Include="assets\shaders\finalProcess.frag" />
-    <None Include="assets\shaders\gaussian_filter.frag" />
-    <None Include="assets\shaders\linear_depth.frag" />
-    <None Include="assets\shaders\narrow_range_filter.frag" />
-    <None Include="assets\shaders\particle_depth.frag" />
-    <None Include="assets\shaders\particle_thickness.vert" />
-    <None Include="assets\shaders\particle_thickness.frag" />
-    <None Include="assets\shaders\point.frag" />
-    <None Include="assets\shaders\point.vert" />
-    <None Include="assets\shaders\postprocess.vert" />
-    <None Include="assets\shaders\skybox.frag" />
-    <None Include="assets\shaders\skybox.vert" />
     <None Include="assets\shaders\test.frag" />
     <None Include="assets\shaders\test.vert" />
   </ItemGroup>
@@ -670,6 +670,9 @@
     </ProjectReference>
     <ProjectReference Include="vendors\imgui\imgui.vcxproj">
       <Project>{0098A80F-6CAC-D0C0-352E-7420A101CDF1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendors\tinyply\tinyply.vcxproj">
+      <Project>{FE9A1BE2-6A7A-9A7D-7392-2554DFF000DF}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

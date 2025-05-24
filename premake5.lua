@@ -16,10 +16,12 @@ IncludeDir["glad"] = "vendors/glad/include"
 IncludeDir["ImGui"] = "vendors/imgui/include"
 IncludeDir["glm"] = "vendors/glm"
 IncludeDir["entt"] = "vendors/entt"
+IncludeDir["tinyPly"] = "vendors/tinyply/include"
 
 include "vendors/glfw"
 include "vendors/glad"
 include "vendors/imgui"
+include "vendors/tinyply"
 
 project "Fluid-Material-Editor"
     kind "ConsoleApp"
@@ -49,7 +51,8 @@ project "Fluid-Material-Editor"
         "glfw",
         "glad",
         "imgui",
-        "opengl32.lib"
+        "opengl32.lib",
+        "tinyply"
     }
 
     includedirs
@@ -61,6 +64,7 @@ project "Fluid-Material-Editor"
         "%{IncludeDir.glad}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.glm}",
+        "%{IncludeDir.tinyPly}",
     }
 
     buildoptions {"/utf-8"}

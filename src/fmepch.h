@@ -9,8 +9,10 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <filesystem>
 #include <unordered_map>
 #include <unordered_set>
+#include <regex>
 #include <entt/entity/registry.hpp>
 
 #ifdef FME_PLATFORM_WINDOWS

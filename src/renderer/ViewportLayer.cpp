@@ -103,14 +103,17 @@ namespace FMEditor {
 		}
 		m_SceneFrameBuffer->Unbind();
 
-		auto& particleGroups = m_Registry.view<C_ParticleGroup>();
-		for (auto& entity : particleGroups) {
+		auto particleGroups = m_Registry.view<C_ParticleGroup>();
+		for (auto entity : particleGroups) {
 			auto& particleGroup = particleGroups.get<C_ParticleGroup>(entity);
+			glm::mat4 Model = glm::scale(glm::mat4(1.0f), glm::vec3(m_particleScale));
+
 			// render particle thickness
 			m_Renderer->EnableDepthMask(false);
 			m_PingpongFBO_Thickness[0]->Bind();
 			m_Renderer->BeginParticleRender();
 			m_particleThicknessShader->Bind();
+			m_particleThicknessShader->setMat4("Model", Model);
 			m_particleThicknessShader->setMat4("Projection", Projection);
 			m_particleThicknessShader->setMat4("View", View);
 			m_particleThicknessShader->setFloat("ParticleRadius", m_particleSize);
@@ -123,6 +126,7 @@ namespace FMEditor {
 			// render particle depth
 			m_Renderer->EnableDepthMask(true);
 			m_particleDepthShader->Bind();
+			m_particleDepthShader->setMat4("Model", Model);
 			m_particleDepthShader->setMat4("Projection", Projection);
 			m_particleDepthShader->setMat4("View", View);
 			m_particleDepthShader->setVec3("CameraPos", cameraPos.x, cameraPos.y, cameraPos.z);
@@ -223,14 +227,17 @@ namespace FMEditor {
 		ImGui::End();
 
 		// GUI: camera information
+		auto* camera = m_Registry.try_get<C_Camera>(m_Camera);
 		ImGui::Begin("Camera Info");
-		auto& camera = m_Registry.get<C_Camera>(m_Camera);
-		glm::vec3 cameraPos = camera.c_Camera.GetPosition();
-		ImGui::Text("CameraPosition: ( %.2f, %.2f, %.2f )", cameraPos.x, cameraPos.y, cameraPos.z);
+		if (camera) {
+			glm::vec3 cameraPos = camera->c_Camera.GetPosition();
+			ImGui::Text("CameraPosition: ( %.2f, %.2f, %.2f )", cameraPos.x, cameraPos.y, cameraPos.z);
+		}
 		ImGui::End();
 
 		// GUI: render option
 		ImGui::Begin("Render Option");
+		ImGui::SliderFloat("particle scale", &m_particleScale, 0.1f, 5.f, "%.3f");
 		ImGui::SliderFloat("particle size", &m_particleSize, 0.0f, 0.05f, "%.3f");
 		ImGui::SliderFloat("absorption", &m_absorption, 0.0f, 1.f, "%.3f");
 		ImGui::ColorEdit3("fluid color", m_color);

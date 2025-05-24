@@ -17,9 +17,14 @@ namespace FMEditor {
 		void OnImguiRender() override;
 	private:
 		void LoadResources();
+		void LoadReadources_mlsmpm();
+		void LoadReadources_sph();
+		void CreateParticlesFromPly();
+		std::vector<std::vector<glm::vec4>> LoadReadources_ply(const std::string& folderPath);
+		std::vector<glm::vec4> LoadPlyPositions(const std::string& path);
 		void MlsmpmMethod(float deltaTime);
 		void SphMethod(float deltaTime);
-		void ReadPly(float deltaTime);
+		void RunPly(float deltaTime);
 
 		template<typename T>
 		inline uint32_t CreateSSBO(std::vector<T>& list)
@@ -37,7 +42,7 @@ namespace FMEditor {
 		{
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
 			glBufferData(GL_SHADER_STORAGE_BUFFER, list.size() * sizeof(T), list.data(), GL_DYNAMIC_COPY);
-			//FME_DEBUG_LOG_INFO("[PhysicsLayer.h]: SSBO updated:{0},{1}", sizeof(T), list.size());
+
 			return ssbo;
 		}
 
@@ -56,6 +61,7 @@ namespace FMEditor {
 		float PI;
 		entt::entity m_GridEntity;
 		entt::entity m_ParticleEntity;
+		std::vector<std::vector<glm::vec4>> m_PlyPointFrames;
 
 		// particle status
 		uint32_t m_PositionSSBO;
@@ -82,12 +88,21 @@ namespace FMEditor {
 		Scope<OpenGL_ComputeShader> m_SPH_Integrate_Shader;
 
 		// simulation settings
+		uint32_t m_SimulationMode;
 		bool m_Paused;
 		float m_TimeScale;
 		int m_GridBoundary;
 		float m_Stiffness;
 		float m_RestDensity;
 		float m_Viscosity;
+
+		// ply 
+		bool m_UsePly;
+		int m_FrameCount;
+		int m_CurrentFrame;
+		int m_ParticleCount;
+		float m_FrameTime;
+		float m_CurrentFrameTime;
 	};
 }
 

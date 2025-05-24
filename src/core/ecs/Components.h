@@ -21,6 +21,7 @@ namespace FMEditor {
 	struct C_ParticleGroup {
 		unsigned int c_ParticleCount;
 		float c_Density;
+		float c_Scale;
 		std::vector<glm::vec4>c_PositionList;
 		std::vector<glm::vec4>c_VelocityList;			// vec3 velocity + float mass
 		std::vector<glm::mat3>c_DeformationGradient;
@@ -36,7 +37,8 @@ namespace FMEditor {
 			c_DeformationGradient(count),
 			c_AffineVelocityField(count),
 			c_Plasticity(count),
-			c_SPH_Force(count) {}
+			c_SPH_Force(count),
+			c_Scale(1.) {}
 
 		void SetPosition(unsigned int index, float x, float y, float z) {
 			c_PositionList[index] = glm::vec4(x, y, z, 0);
@@ -53,6 +55,7 @@ namespace FMEditor {
 		void SetPlasticity(unsigned int index, float plasticity) {
 			c_Plasticity[index] = plasticity;
 		}
+		void SetScale(float scale) { c_Scale = scale; }
 	};
 
 	struct C_MLSMPM_Grid {

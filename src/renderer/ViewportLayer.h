@@ -107,6 +107,7 @@ namespace FMEditor {
 		float m_lightColor[3]{ 1,0.984,0.768 };
 		float m_lightPosition[3]{ 0,3,3 };
 		float m_fresnelScale{ 0.02f };
+		float m_particleScale = 1.f;
 		int m_blurSize = 20;
 		int m_shininess = 250;
 	};
