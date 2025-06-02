@@ -18,9 +18,6 @@ void main() {
     vec2 uv = (floor(gl_FragCoord.xy) + vec2(0.5)) / textureSize(SampleTexture, 0);
     vec2 direction = Horizontal ? vec2(1/texSize.x, 0) : vec2(0, 1/texSize.y);
     float currentValue = texture(SampleTexture, uv).r;
-    if(currentValue < 0.001){
-        FragColor = vec4(0,0,0, 1.0);
-    }
 
     float sigma = blurSize / 3.0;
     float sigma2 = 2. * sigma * sigma;
@@ -34,7 +31,10 @@ void main() {
 
         float dz = abs(value - currentValue);
         float dz_i = abs(value_i - currentValue);
-        if(dz > threshold || dz_i > threshold){
+
+        float dynamicThreshold = threshold * (dz + dz_i) * 0.5 + 0.001;
+
+        if(dz > dynamicThreshold || dz_i > dynamicThreshold){
             continue;
         }
 

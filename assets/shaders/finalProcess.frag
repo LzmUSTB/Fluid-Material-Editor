@@ -73,7 +73,7 @@ void main() {
     vec3 reflectColor = texture(Skybox,reflectDirWorld).xyz;
 
     // fresnel
-    float fresnel = fresnelScale + (1-fresnelScale) * pow(1.0 - max(dot(normal, -viewDir),0.), 5.0);
+    float fresnel = fresnelScale + (1-fresnelScale) * pow(1.0 - abs(dot(normal, -viewDir)), 5.0);
 
     vec3 finalFluidColor = specular + mix(refractColor, reflectColor, clamp(fresnel,0,1));
     float alpha = 1.0 - exp(-thickness);

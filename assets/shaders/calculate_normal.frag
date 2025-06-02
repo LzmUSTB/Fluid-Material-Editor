@@ -41,7 +41,7 @@ void main() {
     vec3 normal = normalize(cross(dy, dx)); 
     vec3 visualNormal = normal * 0.5 + 0.5;
 
-    mat3 normalMatrix = transpose(mat3(inv_View));
+    mat3 normalMatrix = transpose(mat3(inverse(inv_View)));
     vec3 worldNormal = normalize(normalMatrix * normal);
     FragColor = vec4(normal, 1.0); 
 }

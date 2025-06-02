@@ -95,6 +95,9 @@ namespace FMEditor {
 		float m_Stiffness;
 		float m_RestDensity;
 		float m_Viscosity;
+		float m_Mu;
+		float m_Lambda;
+		float m_Eta;
 
 		// ply 
 		bool m_UsePly;

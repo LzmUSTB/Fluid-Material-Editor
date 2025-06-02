@@ -61,7 +61,7 @@ namespace FMEditor {
 	struct C_MLSMPM_Grid {
 		// vec3 velocity + float mass
 		std::vector<glm::vec4>c_GridStatus;
-
+		int c_ParticleCount;
 		glm::vec3 c_GridResolution;
 		float c_GridSpacing;
 		glm::vec3 c_GridOrigin;
@@ -69,6 +69,7 @@ namespace FMEditor {
 		C_MLSMPM_Grid(glm::vec3 gridRes, float gridSpacing, int particleCount) :
 			c_GridStatus(gridRes.x* gridRes.y* gridRes.z),
 			c_GridResolution(gridRes),
+			c_ParticleCount(particleCount),
 			c_GridSpacing(gridSpacing),
 			c_GridOrigin(-gridSpacing / 2 * gridRes) {}
 

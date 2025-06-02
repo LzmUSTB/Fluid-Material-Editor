@@ -30,9 +30,14 @@ uniform float stiffness;            //3.
 uniform float rest_density;         //4.
 uniform float dynamic_viscosity;    //0.1
 uniform float deltaTime; 
+uniform int particleCount;
+
+uniform float elastic_mu;
+uniform float elastic_lambda;
 
 void main() {
     uint id = gl_GlobalInvocationID.x;
+    if (id >= particleCount) return;
 
     float dx = 1.f / float(gridRes);
     float inv_dx = 1.f / dx;
@@ -69,6 +74,13 @@ void main() {
     // volume = mass/density
     float volume = velocities[id].w / density; 
 
+    // Fp
+    mat3 Fp = F[id];
+    float J = determinant(Fp);
+    mat3 F_inv_T = inverse(transpose(Fp));
+    mat3 P = elastic_mu * (Fp - F_inv_T) + elastic_lambda * log(J) * F_inv_T;
+    mat3 stressTerm = (1/J) * P * transpose(Fp);
+
     // pressure
     float pressure = max(-0.1f, stiffness * (pow(density/rest_density,4.) -1));
 
@@ -82,6 +94,7 @@ void main() {
     stress += dynamic_viscosity * strain;
 
     mat3 eq_16_term0 = -volume * 4 * stress * deltaTime;
+    //mat3 eq_16_term0 = -volume * 4 * stressTerm * deltaTime;
 
     // loop neighbor nodes
     for (int i = 0; i < 3; ++i)
@@ -96,7 +109,7 @@ void main() {
         vec3 dpos = (vec3(i,j,k) - fx) * dx;
 
         float weight = w[i].x * w[j].y * w[k].z;
-        vec3 force = eq_16_term0 * weight * dpos;
+        vec3 force = eq_16_term0 * dpos * weight;
 
         // atomic add to grid
         atomicAdd(gridStatus[index].x, force.x);

@@ -69,7 +69,7 @@ namespace FMEditor {
 
 		if (ImGui::Button("Load PLY")) {
 			FME_DEBUG_LOG_TRACE("load ply file");
-			std::string folder = "E:/USTB/±ÏÉè/down_0.2_10/ply";
+			std::string folder = "E:/USTB/±ÏÉè/propeller_0.2_10/ply";
 			m_PlyPointFrames = LoadReadources_ply(folder);
 			CreateParticlesFromPly();
 			m_UsePly = true;
@@ -81,6 +81,7 @@ namespace FMEditor {
 			if (particleGroup) {
 				if (m_SimulationMode == 1 || m_SimulationMode == 2) {
 					FME_DEBUG_LOG_TRACE("Reset Particle Position and Velocity");
+					FME_LOG_TRACE("[PhysicsLayer.cpp]Reset Particle Position and Velocity");
 					UpdateSSBO(m_PositionSSBO, particleGroup->c_PositionList);
 					UpdateSSBO(m_VelocitySSBO, particleGroup->c_VelocityList);
 					UpdateSSBO(m_AffineVelocityFieldSSBO, particleGroup->c_AffineVelocityField);
@@ -98,6 +99,8 @@ namespace FMEditor {
 		ImGui::SliderFloat("Stiffness", &m_Stiffness, 0.f, 1000.f, "%.3f");
 		ImGui::SliderFloat("Density", &m_RestDensity, 0.15f, 1.f, "%.3f");
 		ImGui::SliderFloat("Viscosity", &m_Viscosity, 0.f, 1000.f, "%.3f");
+		ImGui::SliderFloat("elastic:mu", &m_Mu, 0.f, 100.f, "%.3f");
+		ImGui::SliderFloat("elastic:lambda", &m_Lambda, 0.f, 100.f, "%.3f");
 		ImGui::SliderInt("Grid Boundary", &m_GridBoundary, 1, 40, "%d");
 		ImGui::End();
 
@@ -135,7 +138,7 @@ namespace FMEditor {
 		int WIDTH = 64;
 		int HEIGHT = 64;
 		float interval = 0.025;
-		float initOffset = 1;
+		float initOffset = 0;
 		int particleCount = WIDTH * HEIGHT * LENGTH;
 		auto& particleGroup = m_Registry.emplace<C_ParticleGroup>(m_ParticleEntity, particleCount, 1000.f);
 		unsigned int index = 0;
@@ -262,7 +265,7 @@ namespace FMEditor {
 
 		glm::vec3 SPHgridRange = glm::vec3(5.76, 5.76, 5.76);
 		float SPHcellSize = 3.f * interval;
-		glm::vec3 SPHgridResolution = glm::floor(SPHgridRange / SPHcellSize) + glm::vec3(1);
+		glm::vec3 SPHgridResolution = glm::ceil(SPHgridRange / SPHcellSize);
 		auto& grid_sph = m_Registry.emplace<C_SPH_Grid>(m_GridEntity, SPHgridResolution, SPHcellSize, particleCount);
 
 		FME_DEBUG_LOG_TRACE("sph gridOrigin: {0}, {1}, {2}", grid_sph.c_GridOrigin.x, grid_sph.c_GridOrigin.y, grid_sph.c_GridOrigin.z);
@@ -331,6 +334,7 @@ namespace FMEditor {
 		// p2g
 		m_MLSMPM_P2G_Shader->Bind();
 		m_MLSMPM_P2G_Shader->setIVec3("gridRes", grid.c_GridResolution);
+		m_MLSMPM_P2G_Shader->setInt("particleCount", grid.c_ParticleCount);
 		m_MLSMPM_P2G_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
 		m_MLSMPM_P2G_Shader->setFloat("gridSpacing", grid.c_GridSpacing);
 		m_MLSMPM_P2G_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
@@ -339,12 +343,15 @@ namespace FMEditor {
 
 		// p2g 2
 		m_MLSMPM_P2G_2_Shader->Bind();
+		m_MLSMPM_P2G_2_Shader->setInt("particleCount", grid.c_ParticleCount);
 		m_MLSMPM_P2G_2_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_MLSMPM_P2G_2_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
 		m_MLSMPM_P2G_2_Shader->setFloat("gridSpacing", grid.c_GridSpacing);
 		m_MLSMPM_P2G_2_Shader->setFloat("stiffness", m_Stiffness);
 		m_MLSMPM_P2G_2_Shader->setFloat("rest_density", m_RestDensity);
 		m_MLSMPM_P2G_2_Shader->setFloat("dynamic_viscosity", m_Viscosity);
+		m_MLSMPM_P2G_2_Shader->setFloat("elastic_mu", m_Mu);
+		m_MLSMPM_P2G_2_Shader->setFloat("elastic_lambda", m_Lambda);
 		m_MLSMPM_P2G_2_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
 		m_MLSMPM_P2G_2_Shader->Dispatch(64 * 64, 1, 1);
 		m_MLSMPM_P2G_2_Shader->Unbind();
@@ -359,6 +366,7 @@ namespace FMEditor {
 
 		//g2p
 		m_MLSMPM_G2P_Shader->Bind();
+		m_MLSMPM_G2P_Shader->setInt("particleCount", grid.c_ParticleCount);
 		m_MLSMPM_G2P_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_MLSMPM_G2P_Shader->setInt("gridBoundary", m_GridBoundary);
 		m_MLSMPM_G2P_Shader->setFloat("gridSpacing", grid.c_GridSpacing);
@@ -423,9 +431,9 @@ namespace FMEditor {
 		m_SPH_Force_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
 		m_SPH_Force_Shader->setFloat("h", grid.c_CellSize);
 		m_SPH_Force_Shader->setInt("particleCount", grid.c_ParticleCount);
-		m_SPH_Force_Shader->setFloat("restDensity", 20000);
-		m_SPH_Force_Shader->setFloat("viscosity", 100);
-		m_SPH_Force_Shader->setFloat("stiffness", 20);
+		m_SPH_Force_Shader->setFloat("restDensity", m_RestDensity);
+		m_SPH_Force_Shader->setFloat("viscosity", m_Viscosity);
+		m_SPH_Force_Shader->setFloat("stiffness", m_Stiffness);
 		m_SPH_Force_Shader->setFloat("nearStiffness", 1);
 		m_SPH_Force_Shader->Dispatch(64 * 64, 1, 1);
 		m_SPH_Force_Shader->Unbind();

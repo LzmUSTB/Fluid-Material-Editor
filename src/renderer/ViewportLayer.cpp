@@ -242,7 +242,7 @@ namespace FMEditor {
 		ImGui::SliderFloat("absorption", &m_absorption, 0.0f, 1.f, "%.3f");
 		ImGui::ColorEdit3("fluid color", m_color);
 		ImGui::SliderFloat("refract offset", &m_refractOffset, 0.0f, 1.f, "%.3f");
-		ImGui::SliderFloat("filter threshold", &m_filterThreshold, 0.0f, 0.01f, "%.5f");
+		ImGui::SliderFloat("filter threshold", &m_filterThreshold, 0.0f, 1.f, "%.5f");
 		ImGui::SliderFloat("filter offset", &m_filterOffset, 0.0f, 10.f, "%.3f");
 		ImGui::SliderInt("filter blurSize", &m_blurSize, 0, 50);
 		ImGui::SliderInt("filter iterations", &m_filterIterations, 0, 10);

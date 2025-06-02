@@ -30,7 +30,7 @@ namespace FMEditor {
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
-		float fontSize = 22.0f;// *2.0f;
+		float fontSize = 30.0f;// *2.0f;
 		io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/OpenSans-Bold.ttf", fontSize);
 
 		// Setup Dear ImGui style

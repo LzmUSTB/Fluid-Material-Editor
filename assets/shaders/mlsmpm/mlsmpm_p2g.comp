@@ -27,9 +27,11 @@ uniform ivec3 gridRes;
 uniform float gridSpacing;
 uniform vec3 gridOrigin;
 uniform float deltaTime; 
+uniform int particleCount; 
 
 void main() {
     uint id = gl_GlobalInvocationID.x;
+    if (id >= particleCount) return;
 
     float dx = 1.f / float(gridRes);
     float inv_dx = 1.f / dx;

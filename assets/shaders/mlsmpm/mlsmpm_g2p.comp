@@ -26,9 +26,11 @@ uniform int gridBoundary;
 uniform float gridSpacing;
 uniform float deltaTime;
 uniform vec3 gridOrigin;
+uniform int particleCount; 
 
 void main() {
     uint id = gl_GlobalInvocationID.x;
+    if (id >= particleCount) return;
 
     float dx = 1.f / float(gridRes);
     float inv_dx = 1.f / dx;
@@ -75,6 +77,12 @@ void main() {
 
     velocities[id].xyz = newV;
     affineC[id] = newC;
+
+    // Fp
+    mat3 identity = mat3(1.0);
+    mat3 Fp = F[id];
+    Fp = (identity + deltaTime * newC) * Fp;
+    F[id] = Fp;
 
     // fix boundary
     vec3 BoundaryOrigin = gridOrigin + vec3(gridBoundary*gridSpacing); 
