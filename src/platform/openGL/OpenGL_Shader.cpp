@@ -47,9 +47,7 @@ namespace FMEditor {
 		const char* vShaderCode = vertexCode.c_str();
 		const char* fShaderCode = fragmentCode.c_str();
 
-		///////////////////
 		// vertex shader //--------------------------------------
-		///////////////////
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertexShader, 1, &vShaderCode, NULL);
 		glCompileShader(vertexShader);
@@ -59,9 +57,7 @@ namespace FMEditor {
 			FME_DEBUG_ASSERT(0);
 		}
 
-		/////////////////////
 		// fragment shader //------------------------------------
-		/////////////////////
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragmentShader, 1, &fShaderCode, NULL);
 		glCompileShader(fragmentShader);
@@ -71,9 +67,7 @@ namespace FMEditor {
 			FME_DEBUG_ASSERT(0);
 		}
 
-		//////////
 		// link //------------------------------------
-		//////////
 		m_ID = glCreateProgram();
 		glAttachShader(m_ID, vertexShader);
 		glAttachShader(m_ID, fragmentShader);

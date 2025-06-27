@@ -6,6 +6,7 @@
 namespace FMEditor {
 	OpenGL_Renderer::OpenGL_Renderer()
 	{
+		// quad vertices
 		float vertices[] = {
 			1.f, 1.f, 0.0f,
 			1.f, -1.f, 0.0f,

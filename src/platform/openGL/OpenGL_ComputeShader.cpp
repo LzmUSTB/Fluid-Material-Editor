@@ -29,9 +29,7 @@ namespace FMEditor {
 
 		const char* cShaderCode = computeCode.c_str();
 
-		////////////////////
 		// compute shader //--------------------------------------
-		////////////////////
 		GLuint computeShader = glCreateShader(GL_COMPUTE_SHADER);
 		glShaderSource(computeShader, 1, &cShaderCode, NULL);
 		glCompileShader(computeShader);
@@ -41,9 +39,7 @@ namespace FMEditor {
 			FME_DEBUG_ASSERT(0);
 		}
 
-		//////////
 		// link //------------------------------------
-		//////////
 		m_ID = glCreateProgram();
 		glAttachShader(m_ID, computeShader);
 		glLinkProgram(m_ID);

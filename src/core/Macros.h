@@ -15,8 +15,6 @@
 
 #define FME_DEBUG_ASSERT(x) assert(x)
 
-
-
 #ifdef _DEBUG
 #define GL_CALL(func) func; checkOpenGLError();
 #else

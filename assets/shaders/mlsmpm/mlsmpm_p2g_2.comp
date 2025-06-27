@@ -94,7 +94,6 @@ void main() {
     stress += dynamic_viscosity * strain;
 
     mat3 eq_16_term0 = -volume * 4 * stress * deltaTime;
-    //mat3 eq_16_term0 = -volume * 4 * stressTerm * deltaTime;
 
     // loop neighbor nodes
     for (int i = 0; i < 3; ++i)
