@@ -29,7 +29,7 @@
 * 帧率与设备信息显示
 * 日志输出
 
-![fme-interface](../../BlogData/source/images/fme-interface.png)
+![fme-interface](assets/image/fme-interface.png)
 
 ## 项目结构
 

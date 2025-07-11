@@ -28,7 +28,7 @@
 * デバイス情報やフレームレートの表示
 * ログ機能
 
-![fme-interface](../../BlogData/source/images/fme-interface.png)
+![fme-interface](assets/image/fme-interface.png)
 
 ## プロジェクト構成
 
