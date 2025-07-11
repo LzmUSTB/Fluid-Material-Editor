@@ -622,6 +622,26 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\fonts\OpenSans-Bold.ttf" />
+    <None Include="assets\ply\frame_1.ply" />
+    <None Include="assets\ply\frame_10.ply" />
+    <None Include="assets\ply\frame_11.ply" />
+    <None Include="assets\ply\frame_12.ply" />
+    <None Include="assets\ply\frame_13.ply" />
+    <None Include="assets\ply\frame_14.ply" />
+    <None Include="assets\ply\frame_15.ply" />
+    <None Include="assets\ply\frame_16.ply" />
+    <None Include="assets\ply\frame_17.ply" />
+    <None Include="assets\ply\frame_18.ply" />
+    <None Include="assets\ply\frame_19.ply" />
+    <None Include="assets\ply\frame_2.ply" />
+    <None Include="assets\ply\frame_20.ply" />
+    <None Include="assets\ply\frame_3.ply" />
+    <None Include="assets\ply\frame_4.ply" />
+    <None Include="assets\ply\frame_5.ply" />
+    <None Include="assets\ply\frame_6.ply" />
+    <None Include="assets\ply\frame_7.ply" />
+    <None Include="assets\ply\frame_8.ply" />
+    <None Include="assets\ply\frame_9.ply" />
     <None Include="assets\shaders\2d_fix_filter.frag" />
     <None Include="assets\shaders\billboard.frag" />
     <None Include="assets\shaders\billboard.vert" />
@@ -653,6 +673,7 @@
     <None Include="assets\shaders\test.vert" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="assets\image\fme-interface.png" />
     <Image Include="assets\textures\cubemap\nx.png" />
     <Image Include="assets\textures\cubemap\ny.png" />
     <Image Include="assets\textures\cubemap\nz.png" />

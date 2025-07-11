@@ -69,7 +69,7 @@ namespace FMEditor {
 
 		if (ImGui::Button("Load PLY")) {
 			FME_DEBUG_LOG_TRACE("load ply file");
-			std::string folder = "E:/USTB/±œ…Ë/propeller_0.2_10/ply";
+			std::string folder = "assets/ply";
 			m_PlyPointFrames = LoadReadources_ply(folder);
 			CreateParticlesFromPly();
 			m_UsePly = true;
