@@ -18,7 +18,9 @@ namespace FMEditor {
 		m_FrameCount(0),
 		m_ParticleCount(0),
 		m_FrameTime(0.3),
-		m_CurrentFrameTime(0)
+		m_CurrentFrameTime(0),
+		m_Mu(0),
+		m_Lambda(0)
 	{
 		PI = glm::pi<float>();
 	}

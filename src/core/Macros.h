@@ -13,7 +13,11 @@
 #define FME_LOG_INFO(...)		FMEditor::LogLayer::Get()->AddLog(FMEditor::LogLayer::LOG_INFO,__VA_ARGS__)
 #define FME_LOG_TRACE(...)	FMEditor::LogLayer::Get()->AddLog(FMEditor::LogLayer::LOG_TRACE,__VA_ARGS__)
 
+#ifdef _DEBUG
 #define FME_DEBUG_ASSERT(x) assert(x)
+#else
+#define FME_DEBUG_ASSERT(x)  
+#endif
 
 #ifdef _DEBUG
 #define GL_CALL(func) func; checkOpenGLError();

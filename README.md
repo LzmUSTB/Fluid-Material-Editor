@@ -4,6 +4,10 @@
 
 大学の卒業制作で作ったリアルタイム流体シミュレーションツールです。
 
+デモ動画：[https://youtu.be/NLmiRD8SGhI](https://youtu.be/NLmiRD8SGhI)
+
+実行ファイル(統合グラフィックではなく、グラフィックボードでの起動をお願いいたします)：[https://drive.google.com/file/d/1YV-71EpfG4YmUlkOKW3HQRw4w5x9Foyg/view?usp=drive_link](https://drive.google.com/file/d/1YV-71EpfG4YmUlkOKW3HQRw4w5x9Foyg/view?usp=drive_link)
+
 | プラットフォーム   | Windows10                                                    |
 | ------------------ | ------------------------------------------------------------ |
 | プログラミング言語 | C++                                                          |
