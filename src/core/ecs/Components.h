@@ -38,7 +38,8 @@ namespace FMEditor {
 			c_AffineVelocityField(count),
 			c_Plasticity(count),
 			c_SPH_Force(count),
-			c_Scale(1.) {}
+			c_Scale(1.) {
+		}
 
 		void SetPosition(unsigned int index, float x, float y, float z) {
 			c_PositionList[index] = glm::vec4(x, y, z, 0);
@@ -71,7 +72,8 @@ namespace FMEditor {
 			c_GridResolution(gridRes),
 			c_ParticleCount(particleCount),
 			c_GridSpacing(gridSpacing),
-			c_GridOrigin(-gridSpacing / 2 * gridRes) {}
+			c_GridOrigin(-gridSpacing / 2 * gridRes) {
+		}
 
 		inline int GetIndex(int x, int y, int z) const {
 			return x + y * c_GridResolution.x + z * c_GridResolution.y * c_GridResolution.x;
@@ -96,12 +98,12 @@ namespace FMEditor {
 			c_HashCount(c_CellCount),
 			c_HashCount2(c_CellCount),
 			c_OffsetArr(c_CellCount),
-			c_IndexArr(c_CellCount),
 			c_GridResolution(gridRes),
 			c_ParticleCount(particleCount),
 			c_GridOrigin(-cellSize / 2 * gridRes),
-			c_CellSize(cellSize) {
-		}
+			c_CellSize(cellSize),
+			c_IndexArr(particleCount, 0),
+			c_Force(particleCount, glm::vec4(0.0f)){}
 	};
 
 

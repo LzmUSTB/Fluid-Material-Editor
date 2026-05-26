@@ -105,6 +105,10 @@ void main() {
             float nearDensity_j = force[neighborIdx].w;
             if(density_j == 0 || nearDensity_j ==0 ) continue;
 
+            float neighborMass = velocities[neighborIdx].w;
+            float densitySafe = max(density_j, 1e-6);
+            float nearDensitySafe = max(nearDensity_j, 1e-6);
+
             vec3 rij = pi - pj;
             float rLen = length(rij);
             if (rLen >= h || 1e-32 > rLen) continue;
@@ -116,11 +120,13 @@ void main() {
             float nearSharedPressure = (nearPressure_i + nearPressure_j) / 2;
             vec3 dir = normalize(pj-pi);
 
-            f_pressure += -sharedPressure * mass * dir * densityKernelGradient(rLen, h) / density_j;
-            f_pressure += -nearSharedPressure * mass * dir * nearDensityKernelGradient(rLen, h) / nearDensity_j;
+            f_pressure += -sharedPressure * neighborMass * dir * densityKernelGradient(rLen, h) / densitySafe;
+
+            f_pressure += -nearSharedPressure * neighborMass * dir * nearDensityKernelGradient(rLen, h) / nearDensitySafe;
 
             vec3 relativeSpeed = velocities[neighborIdx].xyz - velocities[i].xyz;
-            f_viscosity += mass * relativeSpeed * viscosityKernelLaplacian(rLen, h)/density_j;
+            
+            f_viscosity += neighborMass * relativeSpeed * viscosityKernelLaplacian(rLen, h) / densitySafe;
         }
     }
 

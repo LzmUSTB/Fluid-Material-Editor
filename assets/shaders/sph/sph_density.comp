@@ -85,8 +85,10 @@ void main() {
             vec3 rij = pi - pj;
             float r2 = dot(rij, rij);
             if (r2 < h * h) {
-                density += densityPoly6(r2, h);
-                nearDensity += nearDensityPoly6(sqrt(r2),h);
+                float neighborMass = velocities[neighborIdx].w;
+
+                density += neighborMass * densityPoly6(r2, h);
+                nearDensity += neighborMass * nearDensityPoly6(sqrt(r2), h);
             }
         }
     }

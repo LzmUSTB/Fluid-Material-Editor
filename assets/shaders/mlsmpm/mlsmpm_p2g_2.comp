@@ -39,8 +39,9 @@ void main() {
     uint id = gl_GlobalInvocationID.x;
     if (id >= particleCount) return;
 
-    float dx = 1.f / float(gridRes);
-    float inv_dx = 1.f / dx;
+    float dx = gridSpacing;
+    float inv_dx = 1.0 / dx;
+
     vec3 gridEnd = vec3(gridSpacing * gridRes) + gridOrigin;
     float mass = velocities[id].w;
     mat3 Cp = affineC[id];

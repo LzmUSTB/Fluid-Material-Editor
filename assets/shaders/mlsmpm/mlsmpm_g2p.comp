@@ -32,8 +32,9 @@ void main() {
     uint id = gl_GlobalInvocationID.x;
     if (id >= particleCount) return;
 
-    float dx = 1.f / float(gridRes);
-    float inv_dx = 1.f / dx;
+    float dx = gridSpacing;
+    float inv_dx = 1.0 / dx;
+
     vec3 gridEnd = vec3(gridSpacing * gridRes) + gridOrigin;
     float mass = velocities[id].w;
 
@@ -98,10 +99,10 @@ void main() {
     if(prePosition.x > BoundaryEnd.x)    velocityFix.x += k * gridSpacing * (BoundaryEnd.x - prePosition.x);
                                                         
     if(prePosition.y < BoundaryOrigin.y) velocityFix.y += k * gridSpacing * (BoundaryOrigin.y - prePosition.y);
-    if(prePosition.y < BoundaryEnd.y)    velocityFix.y += k * gridSpacing * (BoundaryEnd.y - prePosition.y);
+    if(prePosition.y > BoundaryEnd.y) velocityFix.y += k * gridSpacing * (BoundaryEnd.y - prePosition.y);
                                                         
     if(prePosition.z < BoundaryOrigin.z) velocityFix.z += k * gridSpacing * (BoundaryOrigin.z- prePosition.z);
-    if(prePosition.z < BoundaryEnd.z)    velocityFix.z += k * gridSpacing * (BoundaryEnd.z- prePosition.z);
+    if(prePosition.z > BoundaryEnd.z) velocityFix.z += k * gridSpacing * (BoundaryEnd.z - prePosition.z);
 
     velocities[id].xyz += velocityFix;
     positions[id].xyz += velocities[id].xyz * deltaTime;

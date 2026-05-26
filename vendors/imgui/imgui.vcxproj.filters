@@ -6,12 +6,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\backends\imgui_impl_glfw.h">
-      <Filter>backends</Filter>
-    </ClInclude>
-    <ClInclude Include="include\backends\imgui_impl_opengl3.h">
-      <Filter>backends</Filter>
-    </ClInclude>
     <ClInclude Include="include\imconfig.h" />
     <ClInclude Include="include\imgui.h" />
     <ClInclude Include="include\imgui_internal.h" />
@@ -20,12 +14,6 @@
     <ClInclude Include="include\imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="include\backends\imgui_impl_glfw.cpp">
-      <Filter>backends</Filter>
-    </ClCompile>
-    <ClCompile Include="include\backends\imgui_impl_opengl3.cpp">
-      <Filter>backends</Filter>
-    </ClCompile>
     <ClCompile Include="include\imgui.cpp" />
     <ClCompile Include="include\imgui_demo.cpp" />
     <ClCompile Include="include\imgui_draw.cpp" />

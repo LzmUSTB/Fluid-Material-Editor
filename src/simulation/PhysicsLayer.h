@@ -92,12 +92,17 @@ namespace FMEditor {
 		bool m_Paused;
 		float m_TimeScale;
 		int m_GridBoundary;
+
 		float m_Stiffness;
 		float m_RestDensity;
 		float m_Viscosity;
+
 		float m_Mu;
 		float m_Lambda;
-		float m_Eta;
+
+		// SPH only
+		float m_NearStiffness;
+		float m_WallStiffness;
 
 		// ply 
 		bool m_UsePly;

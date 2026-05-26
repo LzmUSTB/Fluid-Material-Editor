@@ -32,11 +32,16 @@ uniform ivec3 gridRes;
 uniform vec3 gridOrigin;
 uniform int particleCount;
 
-uint computeCellHash(vec3 pos){
-    vec3 gridEnd = vec3(cellSize * gridRes) + gridOrigin;
-    vec3 gridSpacePos = (pos - gridOrigin)/(gridEnd - gridOrigin) * gridRes;
+bool computeCellHash(vec3 pos, out uint hash) {
+    vec3 gridSpacePos = (pos - gridOrigin) / cellSize;
     ivec3 cell = ivec3(floor(gridSpacePos));
-    return uint(cell.x + cell.y * gridRes.x + cell.z * gridRes.x*gridRes.y);
+
+    if (any(lessThan(cell, ivec3(0))) || any(greaterThanEqual(cell, gridRes))) {
+        return false;
+    }
+
+    hash = uint(cell.x + cell.y * gridRes.x + cell.z * gridRes.x * gridRes.y);
+    return true;
 }
 
 void main() {
@@ -45,7 +50,7 @@ void main() {
 
     vec3 pos = positions[id].xyz;
 
-    uint cellHash = computeCellHash(pos);
-
+    uint cellHash;
+    if (!computeCellHash(pos, cellHash)) return;
     atomicAdd(hashCount[cellHash], 1);
 }
