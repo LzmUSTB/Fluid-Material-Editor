@@ -9,7 +9,6 @@ uniform mat4 Projection;
 uniform float ParticleRadius;
 
 void main() {
-    vec4 pos = positions[gl_InstanceID];
-                                                                
-    gl_Position = Projection * View * vec4(pos);
+    vec3 pos = positions[gl_InstanceID].xyz;
+    gl_Position = Projection * View * vec4(pos, 1.0);
 }

@@ -83,5 +83,40 @@ void main() {
 
         velocities[id].xyz += deltaTime * a;
         positions[id].xyz += deltaTime * velocities[id].xyz;
+    
+        vec3 newPos = positions[id].xyz;
+        vec3 newVel = velocities[id].xyz;
+
+        float bounce = 0.2;
+
+        if (newPos.x < boxMin.x) {
+            newPos.x = boxMin.x;
+            newVel.x = abs(newVel.x) * bounce;
+        }
+        if (newPos.x > boxMax.x) {
+            newPos.x = boxMax.x;
+            newVel.x = -abs(newVel.x) * bounce;
+        }
+        
+        if (newPos.y < boxMin.y) {
+            newPos.y = boxMin.y;
+            newVel.y = abs(newVel.y) * bounce;
+        }
+        if (newPos.y > boxMax.y) {
+            newPos.y = boxMax.y;
+            newVel.y = -abs(newVel.y) * bounce;
+        }
+        
+        if (newPos.z < boxMin.z) {
+            newPos.z = boxMin.z;
+            newVel.z = abs(newVel.z) * bounce;
+        }
+        if (newPos.z > boxMax.z) {
+            newPos.z = boxMax.z;
+            newVel.z = -abs(newVel.z) * bounce;
+        }
+        
+        positions[id].xyz = newPos;
+        velocities[id].xyz = newVel;
     }
 }

@@ -103,8 +103,7 @@ void main() {
             vec3 pj = positions[neighborIdx].xyz;
             float density_j = positions[neighborIdx].w;
             float nearDensity_j = force[neighborIdx].w;
-            if(density_j == 0 || nearDensity_j ==0 ) continue;
-
+            if (density_j <= 1e-6) continue;
             float neighborMass = velocities[neighborIdx].w;
             float densitySafe = max(density_j, 1e-6);
             float nearDensitySafe = max(nearDensity_j, 1e-6);

@@ -431,6 +431,8 @@ namespace FMEditor {
 		m_SPH_Grid1_Shader->Dispatch(groups, 1, 1);
 		m_SPH_Grid1_Shader->Unbind();
 
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
+
 		std::vector<uint32_t> countData(grid.c_CellCount);
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_HashCountSSBO);
@@ -456,6 +458,7 @@ namespace FMEditor {
 		m_SPH_Grid2_Shader->setInt("particleCount", grid.c_ParticleCount);
 		m_SPH_Grid2_Shader->Dispatch(groups, 1, 1);
 		m_SPH_Grid2_Shader->Unbind();
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 		m_SPH_Density_Shader->Bind();
 		m_SPH_Density_Shader->setIVec3("gridRes", grid.c_GridResolution);
@@ -464,6 +467,7 @@ namespace FMEditor {
 		m_SPH_Density_Shader->setInt("particleCount", grid.c_ParticleCount);
 		m_SPH_Density_Shader->Dispatch(groups, 1, 1);
 		m_SPH_Density_Shader->Unbind();
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 		m_SPH_Force_Shader->Bind();
 		m_SPH_Force_Shader->setIVec3("gridRes", grid.c_GridResolution);
@@ -476,6 +480,7 @@ namespace FMEditor {
 		m_SPH_Force_Shader->setFloat("nearStiffness", m_NearStiffness);
 		m_SPH_Force_Shader->Dispatch(groups, 1, 1);
 		m_SPH_Force_Shader->Unbind();
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 		m_SPH_Integrate_Shader->Bind();
 		m_SPH_Integrate_Shader->setInt("particleCount", grid.c_ParticleCount);
@@ -487,6 +492,7 @@ namespace FMEditor {
 		m_SPH_Integrate_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
 		m_SPH_Integrate_Shader->Dispatch(groups, 1, 1);
 		m_SPH_Integrate_Shader->Unbind();
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 	}
 
 	void PhysicsLayer::RunPly(float deltaTime)
