@@ -289,7 +289,7 @@ namespace FMEditor {
 						FME_DEBUG_LOG_TRACE("particleOrigin2: {0}, {1}, {2}", x, y, z);
 					}
 					particleGroup.SetPosition(index, x, y, z);
-					particleGroup.SetVelocityAndMass(index, 0, 0, 0, 1.f);
+					particleGroup.SetVelocityAndMass(index, 0, 0, 0, particleMass);
 					particleGroup.SetDeformationGradient(index, glm::mat3(1.0f));
 					particleGroup.SetAffineVelocityField(index, glm::mat3(0.f));
 					particleGroup.SetPlasticity(index, 0.f);
@@ -419,6 +419,8 @@ namespace FMEditor {
 
 		int groups = (grid.c_ParticleCount + 63) / 64;
 
+		float dt = std::min(deltaTime, 1.0f / 120.0f) * m_TimeScale;
+
 		std::vector<uint32_t> zeros(grid.c_CellCount, 0);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_HashCountSSBO);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, grid.c_CellCount * sizeof(uint32_t), zeros.data());
@@ -489,7 +491,7 @@ namespace FMEditor {
 		m_SPH_Integrate_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
 		m_SPH_Integrate_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_SPH_Integrate_Shader->setFloat("wallStiffness", m_WallStiffness);
-		m_SPH_Integrate_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
+		m_SPH_Integrate_Shader->setFloat("deltaTime", dt);
 		m_SPH_Integrate_Shader->Dispatch(groups, 1, 1);
 		m_SPH_Integrate_Shader->Unbind();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);

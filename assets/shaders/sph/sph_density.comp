@@ -95,6 +95,6 @@ void main() {
 
     positions[id].w = density;
     force[id].w = nearDensity;
-    positions[id].w = clamp(density, 0.0, 5.0);
-    force[id].w = clamp(nearDensity, 0.0, 5.0);
+    //positions[id].w = clamp(density, 0.0, 5.0);
+    //force[id].w = clamp(nearDensity, 0.0, 5.0);
 }

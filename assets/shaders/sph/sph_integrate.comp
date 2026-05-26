@@ -80,8 +80,17 @@ void main() {
 
         vec3 wallForce = xPlusForce + xMinusForce + yPlusForce + yMinusForce + zPlusForce + zMinusForce;
         a += wallForce;
-
+        
         velocities[id].xyz += deltaTime * a;
+
+        velocities[id].xyz *= 0.995;
+        
+        float maxSpeed = 3.0;
+        float speed = length(velocities[id].xyz);
+        if (speed > maxSpeed) {
+            velocities[id].xyz = velocities[id].xyz / speed * maxSpeed;
+        }
+        
         positions[id].xyz += deltaTime * velocities[id].xyz;
     
         vec3 newPos = positions[id].xyz;
