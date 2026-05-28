@@ -76,6 +76,11 @@ namespace FMEditor {
 		uint32_t m_SPH_OffsetSSBO;
 		uint32_t m_SPH_ForceSSBO;
 
+		// bucket buffers
+		uint32_t m_SPH_CellCountSSBO;
+		uint32_t m_SPH_CellParticleSSBO;
+		uint32_t m_SPH_OverflowSSBO;
+
 		// compute shaders
 		Scope<OpenGL_ComputeShader> m_MLSMPM_P2G_Shader;
 		Scope<OpenGL_ComputeShader> m_MLSMPM_P2G_2_Shader;
@@ -87,6 +92,9 @@ namespace FMEditor {
 		Scope<OpenGL_ComputeShader> m_SPH_Force_Shader;
 		Scope<OpenGL_ComputeShader> m_SPH_Integrate_Shader;
 
+		// bucket build shaders
+		Scope<OpenGL_ComputeShader> m_SPH_BucketBuild_Shader;
+		
 		// simulation settings
 		uint32_t m_SimulationMode;
 		bool m_Paused;

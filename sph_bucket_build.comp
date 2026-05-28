@@ -1,0 +1,52 @@
+#version 460 core
+#define MAX_PARTICLES_PER_CELL 128u
+layout(local_size_x = 64) in;
+
+
+layout(std430, binding = 0) buffer PosBuffer {
+    vec4 positions[];
+};
+
+layout(std430, binding = 5) buffer CellCountBuffer {
+    uint cellCounts[];
+};
+
+layout(std430, binding = 6) buffer CellParticleBuffer {
+    uint cellParticles[];
+};
+
+layout(std430, binding = 8) buffer OverflowBuffer {
+    uint overflowCount;
+};
+
+uniform float cellSize;
+uniform ivec3 gridRes;
+uniform vec3 gridOrigin;
+uniform int particleCount;
+
+bool computeCellHash(vec3 pos, out uint hash) {
+    ivec3 cell = ivec3(floor((pos - gridOrigin) / cellSize));
+
+    if (any(lessThan(cell, ivec3(0))) || any(greaterThanEqual(cell, gridRes))) {
+        return false;
+    }
+
+    hash = uint(cell.x + cell.y * gridRes.x + cell.z * gridRes.x * gridRes.y);
+    return true;
+}
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= uint(particleCount)) return;
+
+    uint hash;
+    if (!computeCellHash(positions[id].xyz, hash)) return;
+
+    uint localIndex = atomicAdd(cellCounts[hash], 1u);
+
+    if (localIndex < MAX_PARTICLES_PER_CELL) {
+        cellParticles[hash * MAX_PARTICLES_PER_CELL + localIndex] = id;
+    } else {
+        atomicAdd(overflowCount, 1u);
+    }
+}

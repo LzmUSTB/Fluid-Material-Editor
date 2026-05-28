@@ -81,29 +81,31 @@ namespace FMEditor {
 	};
 
 	struct C_SPH_Grid {
+		static constexpr uint32_t MAX_PARTICLES_PER_CELL = 128;
+
 		glm::vec3 c_GridResolution;
 		glm::vec3 c_GridOrigin;
 
 		float c_CellSize;
 		int c_CellCount;
 		int c_ParticleCount;
-		std::vector<glm::uint32_t> c_HashCount;
-		std::vector<glm::uint32_t> c_HashCount2;
-		std::vector<glm::uint32_t> c_OffsetArr;
-		std::vector<glm::uint32_t> c_IndexArr;
+
+		std::vector<glm::uint32_t> c_CellCounts;
+		std::vector<glm::uint32_t> c_CellParticles;
+		std::vector<glm::uint32_t> c_CellOverflow;
 		std::vector<glm::vec4> c_Force;
 
 		C_SPH_Grid(glm::vec3 gridRes, float cellSize, int particleCount) :
-			c_CellCount(c_GridResolution.x* c_GridResolution.y* c_GridResolution.z),
-			c_HashCount(c_CellCount),
-			c_HashCount2(c_CellCount),
-			c_OffsetArr(c_CellCount),
 			c_GridResolution(gridRes),
-			c_ParticleCount(particleCount),
-			c_GridOrigin(-cellSize / 2 * gridRes),
+			c_GridOrigin(-cellSize / 2.0f * gridRes),
 			c_CellSize(cellSize),
-			c_IndexArr(particleCount, 0),
-			c_Force(particleCount, glm::vec4(0.0f)){}
+			c_CellCount(int(gridRes.x* gridRes.y* gridRes.z)),
+			c_ParticleCount(particleCount),
+			c_CellCounts(c_CellCount, 0),
+			c_CellParticles(c_CellCount* MAX_PARTICLES_PER_CELL, 0),
+			c_CellOverflow(1, 0),
+			c_Force(particleCount, glm::vec4(0.0f)) {
+		}
 	};
 
 

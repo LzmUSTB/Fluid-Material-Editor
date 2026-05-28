@@ -1666,6 +1666,15 @@
     <None Include="assets\shaders\test.vert">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="sph_bucket_build.comp">
+      <Filter>assets\shaders\sph</Filter>
+    </None>
+    <None Include="sph_bucket_density.comp">
+      <Filter>assets\shaders\sph</Filter>
+    </None>
+    <None Include="sph_bucket_force.comp">
+      <Filter>assets\shaders\sph</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\image\fme-interface.png">
