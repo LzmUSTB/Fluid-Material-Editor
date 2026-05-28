@@ -1666,13 +1666,13 @@
     <None Include="assets\shaders\test.vert">
       <Filter>assets\shaders</Filter>
     </None>
-    <None Include="sph_bucket_build.comp">
+    <None Include="assets\shaders\sph\sph_bucket_build.comp">
       <Filter>assets\shaders\sph</Filter>
     </None>
-    <None Include="sph_bucket_density.comp">
+    <None Include="assets\shaders\sph\sph_bucket_density.comp">
       <Filter>assets\shaders\sph</Filter>
     </None>
-    <None Include="sph_bucket_force.comp">
+    <None Include="assets\shaders\sph\sph_bucket_force.comp">
       <Filter>assets\shaders\sph</Filter>
     </None>
   </ItemGroup>

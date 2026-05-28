@@ -663,6 +663,9 @@
     <None Include="assets\shaders\postprocess.vert" />
     <None Include="assets\shaders\skybox.frag" />
     <None Include="assets\shaders\skybox.vert" />
+    <None Include="assets\shaders\sph\sph_bucket_build.comp" />
+    <None Include="assets\shaders\sph\sph_bucket_density.comp" />
+    <None Include="assets\shaders\sph\sph_bucket_force.comp" />
     <None Include="assets\shaders\sph\sph_density.comp" />
     <None Include="assets\shaders\sph\sph_force.comp" />
     <None Include="assets\shaders\sph\sph_grid1.comp" />
@@ -671,9 +674,6 @@
     <None Include="assets\shaders\test.comp" />
     <None Include="assets\shaders\test.frag" />
     <None Include="assets\shaders\test.vert" />
-    <None Include="sph_bucket_build.comp" />
-    <None Include="sph_bucket_density.comp" />
-    <None Include="sph_bucket_force.comp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\image\fme-interface.png" />
