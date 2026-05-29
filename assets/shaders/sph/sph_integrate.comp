@@ -9,34 +9,6 @@ layout(std430, binding = 1) buffer VBuffer {
     vec4 velocities[]; // vec3 velocity + float mass
 };
 
-layout(std430, binding = 2) buffer GridBuffer {
-    vec4 gridStatus[]; // vec3 velocity + float mass
-};
-
-layout(std430, binding = 3) buffer CBuffer {
-    mat3 affineC[]; // APIC affine velocity field
-};
-
-layout(std430, binding = 4) buffer FBuffer {
-    mat3 F[]; // deformation gradient
-};
-
-layout(std430, binding = 5) buffer hashBuffer {
-    uint hashCount[];
-};
-
-layout(std430, binding = 6) buffer hashBuffer2 {
-    uint hashCount2[];
-};
-
-layout(std430, binding = 7) buffer indexBuffer {
-    uint indices[];
-};
-
-layout(std430, binding = 8) buffer offsetBuffer {
-    uint offset[];
-};
-
 layout(std430, binding = 9) buffer forceBuffer {
     vec4 force[];   //vec3 force + float nearDensity
 };

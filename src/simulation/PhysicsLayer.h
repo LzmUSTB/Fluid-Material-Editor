@@ -80,6 +80,7 @@ namespace FMEditor {
 		uint32_t m_SPH_CellCountSSBO;
 		uint32_t m_SPH_CellParticleSSBO;
 		uint32_t m_SPH_OverflowSSBO;
+		uint32_t m_SPH_OverflowDebug = 0;
 
 		// compute shaders
 		Scope<OpenGL_ComputeShader> m_MLSMPM_P2G_Shader;
@@ -111,6 +112,10 @@ namespace FMEditor {
 		// SPH only
 		float m_NearStiffness;
 		float m_WallStiffness;
+
+		float m_SPHAccumulator = 0.0f;
+		float m_SPHFixedDt = 1.0f / 120.0f;
+		int m_SPHMaxSubSteps = 4;
 
 		// ply 
 		bool m_UsePly;

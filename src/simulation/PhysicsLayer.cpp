@@ -6,6 +6,8 @@
 namespace FMEditor {
 	PhysicsLayer::PhysicsLayer(entt::registry& registry) :
 		Layer("PhysicsLayer"), m_Registry(registry),
+		m_GridEntity(entt::null),
+		m_ParticleEntity(entt::null),
 		m_Paused(true),
 		m_TimeScale(1.f),
 		m_SimulationMode(0),
@@ -38,8 +40,24 @@ namespace FMEditor {
 				MlsmpmMethod(deltaTime);
 				break;
 			case 2:
-				SphMethod(deltaTime);
+			{
+				float frameDt = std::min(deltaTime, 0.05f);
+				m_SPHAccumulator += frameDt;
+
+				int steps = 0;
+
+				while (m_SPHAccumulator >= m_SPHFixedDt && steps < m_SPHMaxSubSteps) {
+					SphMethod(m_SPHFixedDt);
+					m_SPHAccumulator -= m_SPHFixedDt;
+					steps++;
+				}
+
+				if (steps == m_SPHMaxSubSteps) {
+					m_SPHAccumulator = 0.0f;
+				}
+
 				break;
+			}
 			case 3:
 				RunPly(deltaTime);
 				break;
@@ -77,7 +95,7 @@ namespace FMEditor {
 		if (ImGui::Button("SPH")) {
 			FME_DEBUG_LOG_TRACE("sph method");
 
-			m_TimeScale = 0.15f;
+			m_TimeScale = 1.0f;
 			m_GridBoundary = 8;
 			m_Stiffness = 35.0f;
 			m_RestDensity = 1.0f;
@@ -101,13 +119,49 @@ namespace FMEditor {
 		auto* particleGroup = m_Registry.try_get<C_ParticleGroup>(m_ParticleEntity);
 		if (ImGui::Button("Reset Position")) {
 			if (particleGroup) {
-				if (m_SimulationMode == 1 || m_SimulationMode == 2) {
-					FME_DEBUG_LOG_TRACE("Reset Particle Position and Velocity");
-					FME_LOG_TRACE("[PhysicsLayer.cpp]Reset Particle Position and Velocity");
-					UpdateSSBO(m_PositionSSBO, particleGroup->c_PositionList);
-					UpdateSSBO(m_VelocitySSBO, particleGroup->c_VelocityList);
+				FME_DEBUG_LOG_TRACE("Reset Particle Position and Velocity");
+				FME_LOG_TRACE("[PhysicsLayer.cpp]Reset Particle Position and Velocity");
+
+				UpdateSSBO(m_PositionSSBO, particleGroup->c_PositionList);
+				UpdateSSBO(m_VelocitySSBO, particleGroup->c_VelocityList);
+
+				if (m_SimulationMode == 1) {
 					UpdateSSBO(m_AffineVelocityFieldSSBO, particleGroup->c_AffineVelocityField);
+					UpdateSSBO(m_DeformationGradientSSBO, particleGroup->c_DeformationGradient);
+					ClearSSBO(m_GridSSBO);
 				}
+				else if (m_SimulationMode == 2) {
+					glm::vec4 zeroForce(0.0f);
+					glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_ForceSSBO);
+					glClearBufferData(
+						GL_SHADER_STORAGE_BUFFER,
+						GL_RGBA32F,
+						GL_RGBA,
+						GL_FLOAT,
+						&zeroForce
+					);
+
+					uint32_t zero = 0;
+
+					glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_CellCountSSBO);
+					glClearBufferData(
+						GL_SHADER_STORAGE_BUFFER,
+						GL_R32UI,
+						GL_RED_INTEGER,
+						GL_UNSIGNED_INT,
+						&zero
+					);
+
+					glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_OverflowSSBO);
+					glClearBufferData(
+						GL_SHADER_STORAGE_BUFFER,
+						GL_R32UI,
+						GL_RED_INTEGER,
+						GL_UNSIGNED_INT,
+						&zero
+					);
+				}
+
 				if (m_SimulationMode == 3) {
 					UpdateSSBO(m_PositionSSBO, m_PlyPointFrames[0]);
 					m_CurrentFrame = 0;
@@ -172,8 +226,15 @@ namespace FMEditor {
 
 	void PhysicsLayer::LoadReadources_mlsmpm()
 	{
-		if (m_Registry.valid(m_ParticleEntity))
+		if (m_Registry.valid(m_ParticleEntity)) {
 			m_Registry.destroy(m_ParticleEntity);
+			m_ParticleEntity = entt::null;
+		}
+
+		if (m_Registry.valid(m_GridEntity)) {
+			m_Registry.destroy(m_GridEntity);
+			m_GridEntity = entt::null;
+		}
 
 		m_ParticleEntity = m_Registry.create();
 
@@ -249,14 +310,22 @@ namespace FMEditor {
 
 	void PhysicsLayer::LoadReadources_sph()
 	{
-		if (m_Registry.valid(m_ParticleEntity))
+		if (m_Registry.valid(m_ParticleEntity)) {
 			m_Registry.destroy(m_ParticleEntity);
+			m_ParticleEntity = entt::null;
+		}
+
+		if (m_Registry.valid(m_GridEntity)) {
+			m_Registry.destroy(m_GridEntity);
+			m_GridEntity = entt::null;
+		}
 		// particles
 		m_ParticleEntity = m_Registry.create();
 
-		int LENGTH = 32;
-		int WIDTH = 32;
-		int HEIGHT = 32;
+		int LENGTH = 48;
+		int WIDTH = 48;
+		int HEIGHT = 48;
+
 		float interval = 0.025;
 		float particleMass = interval * interval * interval;
 		float initOffset = 0;
@@ -307,7 +376,7 @@ namespace FMEditor {
 
 		m_GridEntity = m_Registry.create();
 
-		glm::vec3 SPHgridRange = glm::vec3(2.4f, 2.4f, 2.4f);
+		glm::vec3 SPHgridRange = glm::vec3(3.0f, 3.0f, 3.0f);
 		float SPHcellSize = 3.f * interval;
 		glm::vec3 SPHgridResolution = glm::ceil(SPHgridRange / SPHcellSize);
 
@@ -438,7 +507,7 @@ namespace FMEditor {
 		auto& grid = m_Registry.get<C_SPH_Grid>(m_GridEntity);
 
 		int groups = (grid.c_ParticleCount + 63) / 64;
-		float dt = std::min(deltaTime, 1.0f / 120.0f) * m_TimeScale;
+		float dt = deltaTime * m_TimeScale;
 
 		// 1. Clear cellCounts on GPU
 		uint32_t zero = 0;
