@@ -114,8 +114,13 @@ namespace FMEditor {
 		float m_WallStiffness;
 
 		float m_SPHAccumulator = 0.0f;
-		float m_SPHFixedDt = 1.0f / 120.0f;
-		int m_SPHMaxSubSteps = 4;
+
+		// SPH update interval (dt)
+		float m_SPHUpdateInterval = 1.0f / 60.0f;
+
+		int m_SPHSubSteps = 4;
+
+		int m_SPHMaxUpdatesPerFrame = 2;
 
 		// ply 
 		bool m_UsePly;

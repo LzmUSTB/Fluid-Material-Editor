@@ -42,17 +42,25 @@ namespace FMEditor {
 			case 2:
 			{
 				float frameDt = std::min(deltaTime, 0.05f);
-				m_SPHAccumulator += frameDt;
 
-				int steps = 0;
+				m_SPHAccumulator += frameDt * m_TimeScale;
 
-				while (m_SPHAccumulator >= m_SPHFixedDt && steps < m_SPHMaxSubSteps) {
-					SphMethod(m_SPHFixedDt);
-					m_SPHAccumulator -= m_SPHFixedDt;
-					steps++;
+				int updates = 0;
+
+				while (m_SPHAccumulator >= m_SPHUpdateInterval &&
+					updates < m_SPHMaxUpdatesPerFrame) {
+
+					const float subDt = m_SPHUpdateInterval / float(m_SPHSubSteps);
+
+					for (int i = 0; i < m_SPHSubSteps; ++i) {
+						SphMethod(subDt);
+					}
+
+					m_SPHAccumulator -= m_SPHUpdateInterval;
+					updates++;
 				}
 
-				if (steps == m_SPHMaxSubSteps) {
+				if (updates == m_SPHMaxUpdatesPerFrame) {
 					m_SPHAccumulator = 0.0f;
 				}
 
@@ -97,11 +105,13 @@ namespace FMEditor {
 
 			m_TimeScale = 1.0f;
 			m_GridBoundary = 8;
-			m_Stiffness = 35.0f;
+			m_Stiffness = 25.0f;
 			m_RestDensity = 1.0f;
-			m_Viscosity = 0.45f;
-			m_NearStiffness = 2.5f;
-			m_WallStiffness = 200.0f;
+			m_Viscosity = 1.0f;
+			m_NearStiffness = 1.5f;
+			m_WallStiffness = 250.0f;
+
+			m_SPHAccumulator = 0.0f;
 
 			LoadReadources_sph();
 			m_SimulationMode = 2;
@@ -322,11 +332,11 @@ namespace FMEditor {
 		// particles
 		m_ParticleEntity = m_Registry.create();
 
-		int LENGTH = 48;
-		int WIDTH = 48;
-		int HEIGHT = 48;
+		int LENGTH = 40;
+		int WIDTH = 40;
+		int HEIGHT = 40;
+		float interval = 0.025f;
 
-		float interval = 0.025;
 		float particleMass = interval * interval * interval;
 		float initOffset = 0;
 		int particleCount = WIDTH * HEIGHT * LENGTH;
@@ -507,7 +517,7 @@ namespace FMEditor {
 		auto& grid = m_Registry.get<C_SPH_Grid>(m_GridEntity);
 
 		int groups = (grid.c_ParticleCount + 63) / 64;
-		float dt = deltaTime * m_TimeScale;
+		float dt = deltaTime;
 
 		// 1. Clear cellCounts on GPU
 		uint32_t zero = 0;
