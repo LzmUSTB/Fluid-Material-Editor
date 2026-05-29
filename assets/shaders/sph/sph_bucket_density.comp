@@ -61,7 +61,7 @@ void main() {
 
     vec3 gridEnd = vec3(cellSize * gridRes) + gridOrigin;
     vec3 gridSpacePos = (pi - gridOrigin)/(gridEnd - gridOrigin) * gridRes;
-    ivec3 baseCell = ivec3(floor(gridSpacePos));
+    ivec3 baseCell = ivec3(floor((pi - gridOrigin) / cellSize));
 
     for (int dx = -1; dx <= 1; ++dx)
     for (int dy = -1; dy <= 1; ++dy)
