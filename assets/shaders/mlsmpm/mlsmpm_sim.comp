@@ -25,6 +25,60 @@ uniform float deltaTime;
 uniform ivec3 gridRes;
 uniform int gridBoundary;
 
+uniform float gridSpacing;
+uniform vec3 gridOrigin;
+
+uniform int interactionMode;
+uniform vec3 interactionCenter;
+uniform vec3 interactionDirection;
+uniform float interactionRadius;
+uniform float interactionStrength;
+
+vec3 computeInteractionAcceleration(vec3 p)
+{
+    if (interactionMode == 0) {
+        return vec3(0.0);
+    }
+
+    vec3 toParticle = p - interactionCenter;
+    float r = length(toParticle);
+
+    if (r >= interactionRadius || interactionRadius <= 1e-6) {
+        return vec3(0.0);
+    }
+
+    float q = r / interactionRadius;
+    float w = (1.0 - q) * (1.0 - q);
+
+    vec3 dir = normalize(interactionDirection + vec3(1e-6));
+
+    if (interactionMode == 1) {
+        return dir * interactionStrength * w;
+    }
+
+    if (interactionMode == 2) {
+        vec3 toCenter = interactionCenter - p;
+        float len = length(toCenter);
+        if (len < 1e-6) return vec3(0.0);
+        return normalize(toCenter) * interactionStrength * w;
+    }
+
+    if (interactionMode == 3) {
+        if (r < 1e-6) return vec3(0.0);
+        return normalize(toParticle) * interactionStrength * w;
+    }
+
+    if (interactionMode == 4) {
+        vec3 axis = normalize(interactionDirection + vec3(1e-6));
+        vec3 tangent = cross(axis, toParticle);
+        float tLen = length(tangent);
+        if (tLen < 1e-6) return vec3(0.0);
+        return normalize(tangent) * interactionStrength * w;
+    }
+
+    return vec3(0.0);
+}
+
 ivec3 getBoundaryCells(ivec3 gridRes, int gridBoundary)
 {
     int maxXZ = max(1, min(gridRes.x, gridRes.z) / 2 - 2);
@@ -51,6 +105,10 @@ void main() {
 
         // Add external force (gravity)
         velocity.y += deltaTime * -9.8;
+
+        // Right-click fluid interaction
+        vec3 nodePos = gridOrigin + (vec3(id) + vec3(0.5)) * gridSpacing;
+        velocity += deltaTime * computeInteractionAcceleration(nodePos);
 
         // Handle boundary
         ivec3 boundary = getBoundaryCells(gridRes, gridBoundary);

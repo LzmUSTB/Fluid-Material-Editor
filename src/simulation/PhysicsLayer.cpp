@@ -72,6 +72,21 @@ namespace FMEditor {
 			default:
 				break;
 			}
+
+			auto interactionView = m_Registry.view<C_FluidInteraction>();
+			for (auto entity : interactionView) {
+				auto& interaction = interactionView.get<C_FluidInteraction>(entity);
+
+				if (interaction.c_TimeLeft > 0.0f) {
+					interaction.c_TimeLeft = std::max(0.0f, interaction.c_TimeLeft - deltaTime);
+
+					if (interaction.c_TimeLeft <= 0.0f) {
+						interaction.c_Mode = 0;
+					}
+				}
+
+				break;
+			}
 		}
 	}
 
@@ -523,7 +538,35 @@ namespace FMEditor {
 		m_MLSMPM_P2G_2_Shader->Unbind();
 
 		// grid update
+		int interactionMode = 0;
+		glm::vec3 interactionCenter(0.0f);
+		glm::vec3 interactionDirection(1.0f, 0.0f, 0.0f);
+		float interactionRadius = 0.0f;
+		float interactionStrength = 0.0f;
+
+		auto interactionView = m_Registry.view<C_FluidInteraction>();
+		for (auto entity : interactionView) {
+			auto& interaction = interactionView.get<C_FluidInteraction>(entity);
+
+			if (interaction.c_TimeLeft > 0.0f) {
+				interactionMode = interaction.c_Mode;
+				interactionCenter = interaction.c_Center;
+				interactionDirection = interaction.c_Direction;
+				interactionRadius = interaction.c_Radius;
+				interactionStrength = interaction.c_Strength;
+			}
+
+			break;
+		}
 		m_MLSMPM_SIM_Shader->Bind();
+		m_MLSMPM_SIM_Shader->setFloat("gridSpacing", grid.c_GridSpacing);
+		m_MLSMPM_SIM_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
+
+		m_MLSMPM_SIM_Shader->setInt("interactionMode", interactionMode);
+		m_MLSMPM_SIM_Shader->setVec3("interactionCenter", interactionCenter);
+		m_MLSMPM_SIM_Shader->setVec3("interactionDirection", interactionDirection);
+		m_MLSMPM_SIM_Shader->setFloat("interactionRadius", interactionRadius);
+		m_MLSMPM_SIM_Shader->setFloat("interactionStrength", interactionStrength);
 		m_MLSMPM_SIM_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_MLSMPM_SIM_Shader->setInt("gridBoundary", m_GridBoundary);
 		m_MLSMPM_SIM_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
@@ -596,6 +639,26 @@ namespace FMEditor {
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 		// 5. Integrate
+		int interactionMode = 0;
+		glm::vec3 interactionCenter(0.0f);
+		glm::vec3 interactionDirection(1.0f, 0.0f, 0.0f);
+		float interactionRadius = 0.0f;
+		float interactionStrength = 0.0f;
+
+		auto interactionView = m_Registry.view<C_FluidInteraction>();
+		for (auto entity : interactionView) {
+			auto& interaction = interactionView.get<C_FluidInteraction>(entity);
+
+			if (interaction.c_TimeLeft > 0.0f) {
+				interactionMode = interaction.c_Mode;
+				interactionCenter = interaction.c_Center;
+				interactionDirection = interaction.c_Direction;
+				interactionRadius = interaction.c_Radius;
+				interactionStrength = interaction.c_Strength;
+			}
+
+			break;
+		}
 		m_SPH_Integrate_Shader->Bind();
 		m_SPH_Integrate_Shader->setInt("particleCount", grid.c_ParticleCount);
 		m_SPH_Integrate_Shader->setFloat("cellSize", grid.c_CellSize);
@@ -605,6 +668,11 @@ namespace FMEditor {
 		//m_SPH_Integrate_Shader->setFloat("wallStiffness", m_WallStiffness);
 		m_SPH_Integrate_Shader->setFloat("collisionRadius", 0.032f);
 		m_SPH_Integrate_Shader->setFloat("deltaTime", dt);
+		m_SPH_Integrate_Shader->setInt("interactionMode", interactionMode);
+		m_SPH_Integrate_Shader->setVec3("interactionCenter", interactionCenter);
+		m_SPH_Integrate_Shader->setVec3("interactionDirection", interactionDirection);
+		m_SPH_Integrate_Shader->setFloat("interactionRadius", interactionRadius);
+		m_SPH_Integrate_Shader->setFloat("interactionStrength", interactionStrength);
 		m_SPH_Integrate_Shader->Dispatch(groups, 1, 1);
 		m_SPH_Integrate_Shader->Unbind();
 

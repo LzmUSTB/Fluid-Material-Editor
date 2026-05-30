@@ -211,6 +211,10 @@ namespace FMEditor {
 		}
 
 		ShowNonStretchedImage(SwitchImage(m_textureShown), m_ResolutionWidth, m_ResolutionHeight);
+
+		// Right click interaction for fluid
+		HandleRightClickFluidInteraction();
+
 		ImGui::End();
 
 		ImGuiWindowFlags window_flags =
@@ -268,6 +272,7 @@ namespace FMEditor {
 
 		float aspect_ratio = static_cast<float>(image_width) / image_height;
 		ImVec2 fit_size;
+
 		if (avail_size.x / aspect_ratio <= avail_size.y) {
 			fit_size = ImVec2(avail_size.x, avail_size.x / aspect_ratio);
 		}
@@ -280,6 +285,14 @@ namespace FMEditor {
 		float offset_y = (avail_size.y - fit_size.y) * 0.5f;
 
 		ImGui::SetCursorPos(ImVec2(cursor_pos.x + offset_x, cursor_pos.y + offset_y));
+
+		// Save actual image rect in screen coordinates
+		m_ViewportImageMin = ImGui::GetCursorScreenPos();
+		m_ViewportImageSize = fit_size;
+		m_ViewportImageMax = ImVec2(
+			m_ViewportImageMin.x + fit_size.x,
+			m_ViewportImageMin.y + fit_size.y
+		);
 
 		ImGui::Image(tex_id, fit_size, ImVec2(0, 1), ImVec2(1, 0));
 
@@ -350,6 +363,118 @@ namespace FMEditor {
 		default:
 			return m_RenderTexture->GetID();
 		}
+	}
+
+	void ViewportLayer::HandleRightClickFluidInteraction()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		bool rightDown = ImGui::IsMouseDown(ImGuiMouseButton_Right);
+		bool windowFocused = ImGui::IsWindowFocused();
+
+		if (!rightDown || !windowFocused) {
+			m_HasLastInteractionWorld = false;
+			return;
+		}
+
+		glm::vec3 worldPos;
+		if (!ScreenToWorldOnPlane(io.MousePos, m_MouseInteractionPlaneY, worldPos)) {
+			m_HasLastInteractionWorld = false;
+			return;
+		}
+
+		auto view = m_Registry.view<C_FluidInteraction>();
+
+		entt::entity interactionEntity = entt::null;
+		for (auto entity : view) {
+			interactionEntity = entity;
+			break;
+		}
+
+		if (interactionEntity == entt::null) {
+			interactionEntity = m_Registry.create();
+			m_Registry.emplace<C_FluidInteraction>(interactionEntity);
+		}
+
+		auto& interaction = m_Registry.get<C_FluidInteraction>(interactionEntity);
+
+		interaction.c_Center = worldPos;
+		interaction.c_Radius = m_MouseInteractionRadius;
+		interaction.c_Strength = m_MouseInteractionStrength;
+		interaction.c_TimeLeft = m_MouseInteractionDuration;
+
+		if (m_HasLastInteractionWorld) {
+			glm::vec3 drag = worldPos - m_LastInteractionWorld;
+
+			if (glm::length(drag) > 0.01f) {
+				// Right drag: push fluid along mouse movement
+				interaction.c_Mode = 1;
+				interaction.c_Direction = glm::normalize(drag);
+			}
+			else {
+				// Static right click: repel around click point
+				interaction.c_Mode = 3;
+				interaction.c_Direction = glm::vec3(1.0f, 0.0f, 0.0f);
+			}
+		}
+		else {
+			// First click frame
+			interaction.c_Mode = 3;
+			interaction.c_Direction = glm::vec3(1.0f, 0.0f, 0.0f);
+		}
+
+		m_LastInteractionWorld = worldPos;
+		m_HasLastInteractionWorld = true;
+	}
+
+	bool ViewportLayer::ScreenToWorldOnPlane(const ImVec2& mousePos, float planeY, glm::vec3& outWorld) const
+	{
+		if (mousePos.x < m_ViewportImageMin.x || mousePos.x > m_ViewportImageMax.x ||
+			mousePos.y < m_ViewportImageMin.y || mousePos.y > m_ViewportImageMax.y) {
+			return false;
+		}
+
+		float width = m_ViewportImageMax.x - m_ViewportImageMin.x;
+		float height = m_ViewportImageMax.y - m_ViewportImageMin.y;
+
+		if (width <= 1.0f || height <= 1.0f) {
+			return false;
+		}
+
+		float u = (mousePos.x - m_ViewportImageMin.x) / width;
+		float v = (mousePos.y - m_ViewportImageMin.y) / height;
+
+		// screen -> NDC
+		float ndcX = 2.0f * u - 1.0f;
+		float ndcY = 1.0f - 2.0f * v;
+
+		glm::vec4 nearClip(ndcX, ndcY, -1.0f, 1.0f);
+		glm::vec4 farClip(ndcX, ndcY, 1.0f, 1.0f);
+
+		glm::vec4 nearWorld4 = m_LastVPInv * nearClip;
+		glm::vec4 farWorld4 = m_LastVPInv * farClip;
+
+		if (std::abs(nearWorld4.w) < 1e-6f || std::abs(farWorld4.w) < 1e-6f) {
+			return false;
+		}
+
+		glm::vec3 nearWorld = glm::vec3(nearWorld4) / nearWorld4.w;
+		glm::vec3 farWorld = glm::vec3(farWorld4) / farWorld4.w;
+
+		glm::vec3 rayDir = glm::normalize(farWorld - nearWorld);
+
+		if (std::abs(rayDir.y) < 1e-6f) {
+			return false;
+		}
+
+		float t = (planeY - nearWorld.y) / rayDir.y;
+
+		if (t < 0.0f) {
+			return false;
+		}
+
+		outWorld = nearWorld + t * rayDir;
+		return true;
 	}
 
 	void ViewportLayer::ApplyFilter()

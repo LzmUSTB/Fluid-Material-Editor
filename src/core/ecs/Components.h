@@ -131,15 +131,19 @@ namespace FMEditor {
 	};
 
 	struct C_FluidInteraction {
-		int mode = 0;
-		// 0 none, 1 push, 2 attract, 3 repel, 4 vortex
+		int c_Mode = 0;
+		// 0: none
+		// 1: directional push
+		// 2: attract
+		// 3: repel
+		// 4: vortex
 
-		glm::vec3 center = glm::vec3(0.0f);
-		glm::vec3 direction = glm::vec3(0.0f, 0.0f, -1.0f);
+		glm::vec3 c_Center = glm::vec3(0.0f);
+		glm::vec3 c_Direction = glm::vec3(1.0f, 0.0f, 0.0f);
 
-		float radius = 0.6f;
-		float strength = 20.0f;
-		float timeLeft = 0.0f;
+		float c_Radius = 0.55f;
+		float c_Strength = 22.0f;
+		float c_TimeLeft = 0.0f;
 	};
 
 }

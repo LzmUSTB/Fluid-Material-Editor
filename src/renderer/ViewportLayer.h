@@ -111,10 +111,27 @@ namespace FMEditor {
 		int m_blurSize = 20;
 		int m_shininess = 250;
 
+	private:
+		// Fluid mouse interaction
+		ImVec2 m_ViewportImageMin = ImVec2(0.0f, 0.0f);
+		ImVec2 m_ViewportImageMax = ImVec2(0.0f, 0.0f);
+		ImVec2 m_ViewportImageSize = ImVec2(0.0f, 0.0f);
+
+		glm::vec3 m_LastCameraPos = glm::vec3(0.0f);
+		glm::mat4 m_LastVPInv = glm::mat4(1.0f);
 		glm::mat4 m_LastView = glm::mat4(1.0f);
 		glm::mat4 m_LastProjection = glm::mat4(1.0f);
-		glm::mat4 m_LastVPInv = glm::mat4(1.0f);
-		glm::vec3 m_LastCameraPos = glm::vec3(0.0f);
+
+		bool m_HasLastInteractionWorld = false;
+		glm::vec3 m_LastInteractionWorld = glm::vec3(0.0f);
+
+		float m_MouseInteractionPlaneY = -0.25f;
+		float m_MouseInteractionStrength = 35.0f;
+		float m_MouseInteractionRadius = 0.7f;
+		float m_MouseInteractionDuration = 0.08f;
+
+		bool ScreenToWorldOnPlane(const ImVec2& mousePos, float planeY, glm::vec3& outWorld) const;
+		void HandleRightClickFluidInteraction();
 	};
 
 }
