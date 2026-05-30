@@ -370,15 +370,20 @@ namespace FMEditor {
 		ImGuiIO& io = ImGui::GetIO();
 
 		bool rightDown = ImGui::IsMouseDown(ImGuiMouseButton_Right);
-		bool windowFocused = ImGui::IsWindowFocused();
 
-		if (!rightDown || !windowFocused) {
+		bool insideImage =
+			io.MousePos.x >= m_ViewportImageMin.x && io.MousePos.x <= m_ViewportImageMax.x &&
+			io.MousePos.y >= m_ViewportImageMin.y && io.MousePos.y <= m_ViewportImageMax.y;
+
+		if (!rightDown || !insideImage) {
 			m_HasLastInteractionWorld = false;
 			return;
 		}
 
-		glm::vec3 worldPos;
-		if (!ScreenToWorldOnPlane(io.MousePos, m_MouseInteractionPlaneY, worldPos)) {
+		glm::vec3 rayOrigin;
+		glm::vec3 rayDir;
+
+		if (!ScreenToWorldRay(io.MousePos, rayOrigin, rayDir)) {
 			m_HasLastInteractionWorld = false;
 			return;
 		}
@@ -398,36 +403,35 @@ namespace FMEditor {
 
 		auto& interaction = m_Registry.get<C_FluidInteraction>(interactionEntity);
 
-		interaction.c_Center = worldPos;
+		// Mode 5: ray-based repel
+		interaction.c_Mode = 5;
+
+		// Reuse existing fields:
+		// c_Center    = ray origin
+		// c_Direction = ray direction
+		interaction.c_Center = rayOrigin;
+		interaction.c_Direction = rayDir;
+
 		interaction.c_Radius = m_MouseInteractionRadius;
 		interaction.c_Strength = m_MouseInteractionStrength;
 		interaction.c_TimeLeft = m_MouseInteractionDuration;
 
-		if (m_HasLastInteractionWorld) {
-			glm::vec3 drag = worldPos - m_LastInteractionWorld;
-
-			if (glm::length(drag) > 0.01f) {
-				// Right drag: push fluid along mouse movement
-				interaction.c_Mode = 1;
-				interaction.c_Direction = glm::normalize(drag);
-			}
-			else {
-				// Static right click: repel around click point
-				interaction.c_Mode = 3;
-				interaction.c_Direction = glm::vec3(1.0f, 0.0f, 0.0f);
-			}
-		}
-		else {
-			// First click frame
-			interaction.c_Mode = 3;
-			interaction.c_Direction = glm::vec3(1.0f, 0.0f, 0.0f);
-		}
-
-		m_LastInteractionWorld = worldPos;
 		m_HasLastInteractionWorld = true;
+
+		static int debugCounter = 0;
+		if ((debugCounter++ % 30) == 0) {
+			FME_DEBUG_LOG_TRACE(
+				"RightClick Interaction: mode={0}, origin=({1},{2},{3}), dir=({4},{5},{6}), radius={7}, strength={8}",
+				interaction.c_Mode,
+				interaction.c_Center.x, interaction.c_Center.y, interaction.c_Center.z,
+				interaction.c_Direction.x, interaction.c_Direction.y, interaction.c_Direction.z,
+				interaction.c_Radius,
+				interaction.c_Strength
+			);
+		}
 	}
 
-	bool ViewportLayer::ScreenToWorldOnPlane(const ImVec2& mousePos, float planeY, glm::vec3& outWorld) const
+	bool ViewportLayer::ScreenToWorldRay(const ImVec2& mousePos, glm::vec3& outOrigin, glm::vec3& outDir) const
 	{
 		if (mousePos.x < m_ViewportImageMin.x || mousePos.x > m_ViewportImageMax.x ||
 			mousePos.y < m_ViewportImageMin.y || mousePos.y > m_ViewportImageMax.y) {
@@ -444,7 +448,6 @@ namespace FMEditor {
 		float u = (mousePos.x - m_ViewportImageMin.x) / width;
 		float v = (mousePos.y - m_ViewportImageMin.y) / height;
 
-		// screen -> NDC
 		float ndcX = 2.0f * u - 1.0f;
 		float ndcY = 1.0f - 2.0f * v;
 
@@ -461,19 +464,9 @@ namespace FMEditor {
 		glm::vec3 nearWorld = glm::vec3(nearWorld4) / nearWorld4.w;
 		glm::vec3 farWorld = glm::vec3(farWorld4) / farWorld4.w;
 
-		glm::vec3 rayDir = glm::normalize(farWorld - nearWorld);
+		outOrigin = nearWorld;
+		outDir = glm::normalize(farWorld - nearWorld);
 
-		if (std::abs(rayDir.y) < 1e-6f) {
-			return false;
-		}
-
-		float t = (planeY - nearWorld.y) / rayDir.y;
-
-		if (t < 0.0f) {
-			return false;
-		}
-
-		outWorld = nearWorld + t * rayDir;
 		return true;
 	}
 

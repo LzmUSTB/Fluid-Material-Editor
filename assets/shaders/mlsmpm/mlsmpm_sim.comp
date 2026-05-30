@@ -76,6 +76,50 @@ vec3 computeInteractionAcceleration(vec3 p)
         return normalize(tangent) * interactionStrength * w;
     }
 
+    // 5: ray-based repel
+    // interactionCenter    = ray origin
+    // interactionDirection = ray direction
+    if (interactionMode == 5) {
+        vec3 rayOrigin = interactionCenter;
+        vec3 rayDir = normalize(interactionDirection + vec3(1e-6));
+
+        vec3 op = p - rayOrigin;
+
+        // point projection onto ray
+        float t = dot(op, rayDir);
+
+        // ignore particles behind the camera
+        if (t < 0.0) {
+            return vec3(0.0);
+        }
+
+        vec3 closest = rayOrigin + t * rayDir;
+        vec3 radial = p - closest;
+
+        float dist = length(radial);
+
+        if (dist >= interactionRadius) {
+            return vec3(0.0);
+        }
+
+        float q = dist / interactionRadius;
+        float w = (1.0 - q) * (1.0 - q);
+
+        vec3 radialDir;
+
+        if (dist < 1e-6) {
+            // if exactly on the ray, push slightly sideways using a stable fallback
+            radialDir = normalize(cross(rayDir, vec3(0.0, 1.0, 0.0)) + vec3(1e-6));
+        }
+        else {
+            radialDir = radial / dist;
+        }
+
+        // Mainly push away from the ray.
+        // Add a small ray-direction component so the effect is visible from camera view.
+        return (radialDir + 0.15 * rayDir) * interactionStrength * w;
+    }
+
     return vec3(0.0);
 }
 
