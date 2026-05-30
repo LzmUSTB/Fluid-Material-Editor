@@ -126,9 +126,9 @@ namespace FMEditor {
 		glm::vec3 m_LastInteractionWorld = glm::vec3(0.0f);
 
 		//float m_MouseInteractionPlaneY = -0.25f;
-		float m_MouseInteractionStrength = 120.0f;
-		float m_MouseInteractionRadius = 0.6f;
-		float m_MouseInteractionDuration = 0.2f;
+		float m_MouseInteractionStrength = 100.0f;
+		float m_MouseInteractionRadius = 1.2f;
+		float m_MouseInteractionDuration = 0.25f;
 
 		bool ScreenToWorldRay(const ImVec2& mousePos, glm::vec3& outOrigin, glm::vec3& outDir) const;
 		void HandleRightClickFluidInteraction();

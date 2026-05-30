@@ -80,6 +80,53 @@ vec3 computeInteractionAcceleration(vec3 p)
         return vec3(0.0);
     }
 
+    // 5: ray-based repel
+    // interactionCenter    = ray origin
+    // interactionDirection = ray direction
+    //
+    // 重要：
+    // mode 5 は「rayとの距離」で判定するので、
+    // 通常の sphere radius check より前に処理する。
+    if (interactionMode == 5) {
+        vec3 rayOrigin = interactionCenter;
+        vec3 rayDir = normalize(interactionDirection + vec3(1e-6));
+
+        vec3 op = p - rayOrigin;
+        float t = dot(op, rayDir);
+
+        // カメラより後ろの粒子は無視
+        if (t < 0.0) {
+            return vec3(0.0);
+        }
+
+        vec3 closest = rayOrigin + t * rayDir;
+        vec3 radial = p - closest;
+
+        float dist = length(radial);
+
+        if (dist >= interactionRadius || interactionRadius <= 1e-6) {
+            return vec3(0.0);
+        }
+
+        float q = dist / interactionRadius;
+        float w = (1.0 - q) * (1.0 - q);
+
+        vec3 radialDir;
+
+        if (dist < 1e-6) {
+            vec3 fallback = cross(rayDir, vec3(0.0, 1.0, 0.0));
+            if (length(fallback) < 1e-6) {
+                fallback = cross(rayDir, vec3(1.0, 0.0, 0.0));
+            }
+            radialDir = normalize(fallback);
+        }
+        else {
+            radialDir = radial / dist;
+        }
+
+        return normalize(radialDir + 0.20 * rayDir) * interactionStrength * w;
+    }
+
     vec3 toParticle = p - interactionCenter;
     float r = length(toParticle);
 
@@ -111,57 +158,13 @@ vec3 computeInteractionAcceleration(vec3 p)
         return normalize(toParticle) * interactionStrength * w;
     }
 
-    // 4: vortex around interactionDirection axis
+    // 4: vortex
     if (interactionMode == 4) {
         vec3 axis = normalize(interactionDirection + vec3(1e-6));
         vec3 tangent = cross(axis, toParticle);
         float tLen = length(tangent);
         if (tLen < 1e-6) return vec3(0.0);
         return normalize(tangent) * interactionStrength * w;
-    }
-
-    // 5: ray-based repel
-    // interactionCenter    = ray origin
-    // interactionDirection = ray direction
-    if (interactionMode == 5) {
-        vec3 rayOrigin = interactionCenter;
-        vec3 rayDir = normalize(interactionDirection + vec3(1e-6));
-
-        vec3 op = p - rayOrigin;
-
-        // point projection onto ray
-        float t = dot(op, rayDir);
-
-        // ignore particles behind the camera
-        if (t < 0.0) {
-            return vec3(0.0);
-        }
-
-        vec3 closest = rayOrigin + t * rayDir;
-        vec3 radial = p - closest;
-
-        float dist = length(radial);
-
-        if (dist >= interactionRadius) {
-            return vec3(0.0);
-        }
-
-        float q = dist / interactionRadius;
-        float w = (1.0 - q) * (1.0 - q);
-
-        vec3 radialDir;
-
-        if (dist < 1e-6) {
-            // if exactly on the ray, push slightly sideways using a stable fallback
-            radialDir = normalize(cross(rayDir, vec3(0.0, 1.0, 0.0)) + vec3(1e-6));
-        }
-        else {
-            radialDir = radial / dist;
-        }
-
-        // Mainly push away from the ray.
-        // Add a small ray-direction component so the effect is visible from camera view.
-        return (radialDir + 0.15 * rayDir) * interactionStrength * w;
     }
 
     return vec3(0.0);
