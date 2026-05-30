@@ -104,12 +104,14 @@ namespace FMEditor {
 			FME_DEBUG_LOG_TRACE("sph method");
 
 			m_TimeScale = 1.0f;
-			m_GridBoundary = 8;
+			m_GridBoundary = 7;
+
 			m_Stiffness = 25.0f;
 			m_RestDensity = 1.0f;
 			m_Viscosity = 1.0f;
-			m_NearStiffness = 1.5f;
-			m_WallStiffness = 250.0f;
+			m_NearStiffness = 1.2f;
+
+			m_WallStiffness = 0.0f;
 
 			m_SPHAccumulator = 0.0f;
 
@@ -197,10 +199,38 @@ namespace FMEditor {
 			ImGui::Text("SPH Parameters");
 			ImGui::SliderFloat("SPH Stiffness", &m_Stiffness, 0.0f, 80.0f, "%.3f");
 			ImGui::SliderFloat("SPH Rest Density", &m_RestDensity, 0.5f, 2.0f, "%.3f");
-			ImGui::SliderFloat("SPH Viscosity", &m_Viscosity, 0.0f, 5.0f, "%.3f");
+			ImGui::SliderFloat("SPH Viscosity", &m_Viscosity, 0.0f, 3.0f, "%.3f");
 			ImGui::SliderFloat("SPH Near Stiffness", &m_NearStiffness, 0.0f, 10.0f, "%.3f");
-			ImGui::SliderFloat("SPH Wall Stiffness", &m_WallStiffness, 50.0f, 1000.0f, "%.3f");
-			ImGui::SliderInt("Grid Boundary", &m_GridBoundary, 1, 12, "%d");
+			//ImGui::SliderFloat("SPH Wall Stiffness", &m_WallStiffness, 50.0f, 1000.0f, "%.3f");
+			//ImGui::SliderInt("Grid Boundary", &m_GridBoundary, 1, 12, "%d");
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Read SPH Overflow")) {
+				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
+
+				uint32_t overflow = 0;
+
+				glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_OverflowSSBO);
+				glGetBufferSubData(
+					GL_SHADER_STORAGE_BUFFER,
+					0,
+					sizeof(uint32_t),
+					&overflow
+				);
+				glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+				m_SPH_OverflowDebug = overflow;
+			}
+
+			ImGui::Text("SPH Overflow: %u", m_SPH_OverflowDebug);
+
+			if (m_SPH_OverflowDebug > 0) {
+				ImGui::TextColored(
+					ImVec4(1.0f, 0.35f, 0.25f, 1.0f),
+					"Bucket overflow detected."
+				);
+			}
 		}
 		ImGui::End();
 
@@ -572,7 +602,8 @@ namespace FMEditor {
 		m_SPH_Integrate_Shader->setInt("gridBoundary", m_GridBoundary);
 		m_SPH_Integrate_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
 		m_SPH_Integrate_Shader->setIVec3("gridRes", grid.c_GridResolution);
-		m_SPH_Integrate_Shader->setFloat("wallStiffness", m_WallStiffness);
+		//m_SPH_Integrate_Shader->setFloat("wallStiffness", m_WallStiffness);
+		m_SPH_Integrate_Shader->setFloat("collisionRadius", 0.032f);
 		m_SPH_Integrate_Shader->setFloat("deltaTime", dt);
 		m_SPH_Integrate_Shader->Dispatch(groups, 1, 1);
 		m_SPH_Integrate_Shader->Unbind();

@@ -25,6 +25,19 @@ uniform float deltaTime;
 uniform ivec3 gridRes;
 uniform int gridBoundary;
 
+ivec3 getBoundaryCells(ivec3 gridRes, int gridBoundary)
+{
+    int maxXZ = max(1, min(gridRes.x, gridRes.z) / 2 - 2);
+
+    int boundaryXZ = clamp(gridBoundary, 1, maxXZ);
+
+    int fixedYBoundary = 3;
+    int maxY = max(1, gridRes.y / 2 - 2);
+    int boundaryY = clamp(fixedYBoundary, 1, maxY);
+
+    return ivec3(boundaryXZ, boundaryY, boundaryXZ);
+}
+
 void main() {
     ivec3 id = ivec3(gl_GlobalInvocationID.xyz);
     if (any(greaterThanEqual(id, vec3(gridRes)))) return;
@@ -40,18 +53,16 @@ void main() {
         velocity.y += deltaTime * -9.8;
 
         // Handle boundary
-        int boundary = gridBoundary;
-        //if(id.x < boundary || id.x > gridRes - boundary - 1) velocity.x = 0.0;
-        //if(id.y < boundary || id.y > gridRes - boundary - 1) velocity.y = 0.0;
-        //if(id.z < boundary || id.z > gridRes - boundary - 1) velocity.z = 0.0;
-        if (id.y > gridRes.y-boundary-1 && velocity.y > 0) velocity.y = 0.0;
-        if (id.y < boundary && velocity.y < 0) velocity.y = 0.0;
+        ivec3 boundary = getBoundaryCells(gridRes, gridBoundary);
 
-        if (id.x > gridRes.x-boundary-1 && velocity.x > 0) velocity.x = 0.0;
-        if (id.x < boundary && velocity.x < 0) velocity.x = 0.0;
+        if (id.y > gridRes.y - boundary.y - 1 && velocity.y > 0.0) velocity.y = 0.0;
+        if (id.y < boundary.y && velocity.y < 0.0) velocity.y = 0.0;
 
-        if (id.z > gridRes.z-boundary-1 && velocity.z > 0) velocity.z = 0.0;
-        if (id.z < boundary && velocity.z < 0) velocity.z = 0.0;
+        if (id.x > gridRes.x - boundary.x - 1 && velocity.x > 0.0) velocity.x = 0.0;
+        if (id.x < boundary.x && velocity.x < 0.0) velocity.x = 0.0;
+
+        if (id.z > gridRes.z - boundary.z - 1 && velocity.z > 0.0) velocity.z = 0.0;
+        if (id.z < boundary.z && velocity.z < 0.0) velocity.z = 0.0;
 
         // Write back
         gridStatus[index].xyz = velocity;  

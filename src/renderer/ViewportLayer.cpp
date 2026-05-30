@@ -59,6 +59,11 @@ namespace FMEditor {
 		glm::mat4 Projection_Inv = glm::inverse(Projection);
 		auto cameraPos = camera.c_Camera.GetPosition();
 
+		m_LastView = View;
+		m_LastProjection = Projection;
+		m_LastVPInv = glm::inverse(Projection * View);
+		m_LastCameraPos = cameraPos;
+
 		m_Renderer->EnableDepthMask(true);
 		m_SceneFrameBuffer->Bind();
 		for (auto entity : objects) {

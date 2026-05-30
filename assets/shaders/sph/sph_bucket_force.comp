@@ -61,7 +61,6 @@ void main()
     float density_i = positions[i].w;
     float nearDensity_i = force[i].w;
 
-    // densityが未計算・範囲外などの場合でも重力だけは入れる
     if (density_i <= 1e-6) {
         force[i].xyz = vec3(0.0, -9.8, 0.0);
         return;
@@ -139,7 +138,8 @@ void main()
 
     vec3 f_gravity = vec3(0.0, -9.8, 0.0) * density_i;
 
-    f_viscosity *= viscosity;
+    float viscosityScale = 0.1;
+    f_viscosity *= viscosity * viscosityScale;
 
     force[i].xyz = f_pressure + f_viscosity + f_gravity;
 }

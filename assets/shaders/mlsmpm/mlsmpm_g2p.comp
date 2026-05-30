@@ -28,6 +28,19 @@ uniform float deltaTime;
 uniform vec3 gridOrigin;
 uniform int particleCount; 
 
+ivec3 getBoundaryCells(ivec3 gridRes, int gridBoundary)
+{
+    int maxXZ = max(1, min(gridRes.x, gridRes.z) / 2 - 2);
+
+    int boundaryXZ = clamp(gridBoundary, 1, maxXZ);
+
+    int fixedYBoundary = 3;
+    int maxY = max(1, gridRes.y / 2 - 2);
+    int boundaryY = clamp(fixedYBoundary, 1, maxY);
+
+    return ivec3(boundaryXZ, boundaryY, boundaryXZ);
+}
+
 void main() {
     uint id = gl_GlobalInvocationID.x;
     if (id >= particleCount) return;
@@ -86,8 +99,11 @@ void main() {
     F[id] = Fp;
 
     // fix boundary
-    vec3 BoundaryOrigin = gridOrigin + vec3(gridBoundary*gridSpacing); 
-    vec3 BoundaryEnd = gridEnd - vec3(gridBoundary*gridSpacing); 
+    ivec3 boundaryCells = getBoundaryCells(gridRes, gridBoundary);
+
+    vec3 BoundaryOrigin = gridOrigin + vec3(boundaryCells) * gridSpacing;
+    vec3 BoundaryEnd = gridEnd - vec3(boundaryCells) * gridSpacing;
+
     positions[id].xyz = clamp(positions[id].xyz, BoundaryOrigin, BoundaryEnd);
 
     vec3 velocityFix = vec3(0); 

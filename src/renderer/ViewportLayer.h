@@ -110,6 +110,11 @@ namespace FMEditor {
 		float m_particleScale = 1.f;
 		int m_blurSize = 20;
 		int m_shininess = 250;
+
+		glm::mat4 m_LastView = glm::mat4(1.0f);
+		glm::mat4 m_LastProjection = glm::mat4(1.0f);
+		glm::mat4 m_LastVPInv = glm::mat4(1.0f);
+		glm::vec3 m_LastCameraPos = glm::vec3(0.0f);
 	};
 
 }
