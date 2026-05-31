@@ -179,7 +179,7 @@ namespace FMEditor {
 						&zero
 					);
 
-					glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_OverflowSSBO);
+					glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_CellScratchSSBO);
 					glClearBufferData(
 						GL_SHADER_STORAGE_BUFFER,
 						GL_R32UI,
@@ -220,32 +220,7 @@ namespace FMEditor {
 			//ImGui::SliderInt("Grid Boundary", &m_GridBoundary, 1, 12, "%d");
 
 			ImGui::Separator();
-
-			if (ImGui::Button("Read SPH Overflow")) {
-				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
-
-				uint32_t overflow = 0;
-
-				glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_OverflowSSBO);
-				glGetBufferSubData(
-					GL_SHADER_STORAGE_BUFFER,
-					0,
-					sizeof(uint32_t),
-					&overflow
-				);
-				glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-				m_SPH_OverflowDebug = overflow;
-			}
-
-			ImGui::Text("SPH Overflow: %u", m_SPH_OverflowDebug);
-
-			if (m_SPH_OverflowDebug > 0) {
-				ImGui::TextColored(
-					ImVec4(1.0f, 0.35f, 0.25f, 1.0f),
-					"Bucket overflow detected."
-				);
-			}
+			ImGui::Text("SPH Neighbor Search: prefix-sum sorted grid");
 		}
 		ImGui::End();
 
@@ -274,6 +249,10 @@ namespace FMEditor {
 		m_SPH_BucketBuild_Shader = CreateScope<OpenGL_ComputeShader>(
 			"assets/shaders/sph/sph_bucket_build.comp"
 		);
+		m_SPH_ScanBlock_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_scan_block.comp");
+		m_SPH_ScanGroup_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_scan_group.comp");
+		m_SPH_AddScanBlockOffsets_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_add_scan_block_offsets.comp");
+		m_SPH_SortParticles_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_sort_particles.comp");
 
 		m_SPH_Density_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_bucket_density.comp");
 		m_SPH_Force_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_bucket_force.comp");
@@ -431,7 +410,7 @@ namespace FMEditor {
 
 		m_GridEntity = m_Registry.create();
 
-		glm::vec3 SPHgridRange = glm::vec3(3.0f, 3.0f, 3.0f);
+		glm::vec3 SPHgridRange = glm::vec3(3.2f, 3.2f, 3.2f);
 		float SPHcellSize = 3.f * interval;
 		glm::vec3 SPHgridResolution = glm::ceil(SPHgridRange / SPHcellSize);
 
@@ -446,16 +425,23 @@ namespace FMEditor {
 
 		// sph switch to bucket data structure
 		m_SPH_CellCountSSBO = CreateSSBO(grid_sph.c_CellCounts);
-		m_SPH_CellParticleSSBO = CreateSSBO(grid_sph.c_CellParticles);
-		m_SPH_OverflowSSBO = CreateSSBO(grid_sph.c_CellOverflow);
+		m_SPH_CellOffsetSSBO = CreateSSBO(grid_sph.c_CellOffsets);
+		m_SPH_SortedParticleSSBO = CreateSSBO(grid_sph.c_SortedParticles);
+		m_SPH_CellScratchSSBO = CreateSSBO(grid_sph.c_CellScratch);
+		m_SPH_ScanBlockSumSSBO = CreateSSBO(grid_sph.c_ScanBlockSums);
+		m_SPH_ScanBlockOffsetSSBO = CreateSSBO(grid_sph.c_ScanBlockOffsets);
 
 		m_SPH_ForceSSBO = CreateSSBO(grid_sph.c_Force);
 
 		BindSSBO(m_PositionSSBO, 0);
 		BindSSBO(m_VelocitySSBO, 1);
 		BindSSBO(m_SPH_CellCountSSBO, 5);
-		BindSSBO(m_SPH_CellParticleSSBO, 6);
-		BindSSBO(m_SPH_OverflowSSBO, 8);
+		BindSSBO(m_SPH_CellOffsetSSBO, 6);
+		BindSSBO(m_SPH_SortedParticleSSBO, 7);
+		BindSSBO(m_SPH_CellScratchSSBO, 8);
+		BindSSBO(m_SPH_ForceSSBO, 9);
+		BindSSBO(m_SPH_ScanBlockSumSSBO, 10);
+		BindSSBO(m_SPH_ScanBlockOffsetSSBO, 11);
 
 		//m_SPH_HashCountSSBO = CreateSSBO(grid_sph.c_HashCount);
 		//m_SPH_HashCount_2_SSBO = CreateSSBO(grid_sph.c_HashCount2);
@@ -470,7 +456,6 @@ namespace FMEditor {
 		//BindSSBO(m_SPH_HashCount_2_SSBO, 6);
 		//BindSSBO(m_SPH_IndexSSBO, 7);
 		//BindSSBO(m_SPH_OffsetSSBO, 8);
-		BindSSBO(m_SPH_ForceSSBO, 9);
 	}
 
 	std::vector<std::vector<glm::vec4>> PhysicsLayer::LoadReadources_ply(const std::string& folderPath)
@@ -598,13 +583,13 @@ namespace FMEditor {
 		glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_R32UI,
 			GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_OverflowSSBO);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_CellScratchSSBO);
 		glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_R32UI,
 			GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		// 2. Build bucket
+		// 2. Count particles in each cell
 		m_SPH_BucketBuild_Shader->Bind();
 		m_SPH_BucketBuild_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_SPH_BucketBuild_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
@@ -614,7 +599,38 @@ namespace FMEditor {
 		m_SPH_BucketBuild_Shader->Unbind();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		// 3. Density
+		// 3. Prefix sum cell counts so each cell owns a compact range in sortedParticles
+		int scanGroups = (grid.c_CellCount + int(C_SPH_Grid::SCAN_BLOCK_SIZE) - 1) / int(C_SPH_Grid::SCAN_BLOCK_SIZE);
+
+		m_SPH_ScanBlock_Shader->Bind();
+		m_SPH_ScanBlock_Shader->setInt("cellCount", grid.c_CellCount);
+		m_SPH_ScanBlock_Shader->Dispatch(scanGroups, 1, 1);
+		m_SPH_ScanBlock_Shader->Unbind();
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		m_SPH_ScanGroup_Shader->Bind();
+		m_SPH_ScanGroup_Shader->setInt("blockCount", scanGroups);
+		m_SPH_ScanGroup_Shader->Dispatch(1, 1, 1);
+		m_SPH_ScanGroup_Shader->Unbind();
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		m_SPH_AddScanBlockOffsets_Shader->Bind();
+		m_SPH_AddScanBlockOffsets_Shader->setInt("cellCount", grid.c_CellCount);
+		m_SPH_AddScanBlockOffsets_Shader->Dispatch(scanGroups, 1, 1);
+		m_SPH_AddScanBlockOffsets_Shader->Unbind();
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		// 4. Compact particles by cell. This replaces fixed-size per-cell buckets.
+		m_SPH_SortParticles_Shader->Bind();
+		m_SPH_SortParticles_Shader->setIVec3("gridRes", grid.c_GridResolution);
+		m_SPH_SortParticles_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
+		m_SPH_SortParticles_Shader->setFloat("cellSize", grid.c_CellSize);
+		m_SPH_SortParticles_Shader->setInt("particleCount", grid.c_ParticleCount);
+		m_SPH_SortParticles_Shader->Dispatch(groups, 1, 1);
+		m_SPH_SortParticles_Shader->Unbind();
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		// 5. Density
 		m_SPH_Density_Shader->Bind();
 		m_SPH_Density_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_SPH_Density_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
@@ -624,7 +640,7 @@ namespace FMEditor {
 		m_SPH_Density_Shader->Unbind();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		// 4. Force
+		// 6. Force
 		m_SPH_Force_Shader->Bind();
 		m_SPH_Force_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_SPH_Force_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
@@ -638,7 +654,7 @@ namespace FMEditor {
 		m_SPH_Force_Shader->Unbind();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		// 5. Integrate
+		// 7. Integrate
 		int interactionMode = 0;
 		glm::vec3 interactionCenter(0.0f);
 		glm::vec3 interactionDirection(1.0f, 0.0f, 0.0f);

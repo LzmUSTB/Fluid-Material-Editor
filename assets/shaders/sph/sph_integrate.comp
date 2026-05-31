@@ -74,6 +74,16 @@ void applyBoundary(inout vec3 p, inout vec3 v, vec3 boxMin, vec3 boxMax)
     }
 } 
 
+bool isInvalidFloat(float x)
+{
+    return isnan(x) || isinf(x);
+}
+
+bool isInvalidVec3(vec3 v)
+{
+    return any(isnan(v)) || any(isinf(v));
+}
+
 vec3 computeInteractionAcceleration(vec3 p)
 {
     if (interactionMode == 0) {
@@ -83,10 +93,6 @@ vec3 computeInteractionAcceleration(vec3 p)
     // 5: ray-based repel
     // interactionCenter    = ray origin
     // interactionDirection = ray direction
-    //
-    // 重要：
-    // mode 5 は「rayとの距離」で判定するので、
-    // 通常の sphere radius check より前に処理する。
     if (interactionMode == 5) {
         vec3 rayOrigin = interactionCenter;
         vec3 rayDir = normalize(interactionDirection + vec3(1e-6));
@@ -94,7 +100,6 @@ vec3 computeInteractionAcceleration(vec3 p)
         vec3 op = p - rayOrigin;
         float t = dot(op, rayDir);
 
-        // カメラより後ろの粒子は無視
         if (t < 0.0) {
             return vec3(0.0);
         }
@@ -175,9 +180,6 @@ void main()
     uint id = gl_GlobalInvocationID.x;
     if (id >= uint(particleCount)) return;
 
-    float density = positions[id].w;
-    if (density <= 1e-6) return;
-
     vec3 gridEnd = vec3(cellSize * gridRes) + gridOrigin;
 
     ivec3 boundaryCells = getBoundaryCells(gridRes, gridBoundary);
@@ -188,8 +190,27 @@ void main()
     vec3 p = positions[id].xyz;
     vec3 v = velocities[id].xyz;
 
-    vec3 a = force[id].xyz / density;
-    a += computeInteractionAcceleration(positions[id].xyz);
+    float density = positions[id].w;
+    vec3 a = vec3(0.0, -9.8, 0.0);
+
+    if (isInvalidVec3(p)) {
+        p = (boxMin + boxMax) * 0.5;
+        v = vec3(0.0);
+    }
+
+    if (isInvalidVec3(v)) {
+        v = vec3(0.0);
+    }
+
+    if (!isInvalidFloat(density) && density > 1e-6 && !isInvalidVec3(force[id].xyz)) {
+        a = force[id].xyz / density;
+    }
+
+    a += computeInteractionAcceleration(p);
+
+    if (isInvalidVec3(a)) {
+        a = vec3(0.0, -9.8, 0.0);
+    }
 
     v += deltaTime * a;
 

@@ -1,0 +1,70 @@
+#version 460 core
+
+#define SCAN_BLOCK_SIZE 256
+#define SCAN_ELEMENTS (SCAN_BLOCK_SIZE * 2)
+
+layout(local_size_x = SCAN_BLOCK_SIZE) in;
+
+layout(std430, binding = 5) readonly buffer CellCountBuffer {
+    uint cellCounts[];
+};
+
+layout(std430, binding = 6) buffer CellOffsetBuffer {
+    uint cellOffsets[];
+};
+
+layout(std430, binding = 10) buffer ScanBlockSumBuffer {
+    uint scanBlockSums[];
+};
+
+uniform int cellCount;
+
+shared uint scanData[SCAN_ELEMENTS];
+
+void main()
+{
+    uint tid = gl_LocalInvocationID.x;
+    uint baseIndex = gl_WorkGroupID.x * uint(SCAN_ELEMENTS);
+    uint indexA = baseIndex + tid;
+    uint indexB = indexA + uint(SCAN_BLOCK_SIZE);
+
+    scanData[tid] = indexA < uint(cellCount) ? cellCounts[indexA] : 0u;
+    scanData[tid + uint(SCAN_BLOCK_SIZE)] = indexB < uint(cellCount) ? cellCounts[indexB] : 0u;
+
+    int offset = 1;
+    for (int d = SCAN_BLOCK_SIZE; d > 0; d >>= 1) {
+        barrier();
+        if (tid < uint(d)) {
+            int ai = offset * (int(tid) * 2 + 1) - 1;
+            int bi = offset * (int(tid) * 2 + 2) - 1;
+            scanData[bi] += scanData[ai];
+        }
+        offset <<= 1;
+    }
+
+    if (tid == 0u) {
+        scanBlockSums[gl_WorkGroupID.x] = scanData[SCAN_ELEMENTS - 1];
+        scanData[SCAN_ELEMENTS - 1] = 0u;
+    }
+
+    for (int d = 1; d < SCAN_ELEMENTS; d <<= 1) {
+        offset >>= 1;
+        barrier();
+        if (tid < uint(d)) {
+            int ai = offset * (int(tid) * 2 + 1) - 1;
+            int bi = offset * (int(tid) * 2 + 2) - 1;
+            uint t = scanData[ai];
+            scanData[ai] = scanData[bi];
+            scanData[bi] += t;
+        }
+    }
+
+    barrier();
+
+    if (indexA < uint(cellCount)) {
+        cellOffsets[indexA] = scanData[tid];
+    }
+    if (indexB < uint(cellCount)) {
+        cellOffsets[indexB] = scanData[tid + uint(SCAN_BLOCK_SIZE)];
+    }
+}

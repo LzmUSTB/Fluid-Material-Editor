@@ -1,5 +1,4 @@
 #version 460 core
-#define MAX_PARTICLES_PER_CELL 128u
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
 layout(std430, binding = 0) buffer PosBuffer {
@@ -26,8 +25,12 @@ layout(std430, binding = 5) buffer CellCountBuffer {
     uint cellCounts[];
 };
 
-layout(std430, binding = 6) buffer CellParticleBuffer {
-    uint cellParticles[];
+layout(std430, binding = 6) readonly buffer CellOffsetBuffer {
+    uint cellOffsets[];
+};
+
+layout(std430, binding = 7) readonly buffer SortedParticleBuffer {
+    uint sortedParticles[];
 };
 
 layout(std430, binding = 9) buffer forceBuffer {
@@ -86,10 +89,11 @@ void main() {
         if (any(lessThan(neighborCell, ivec3(0))) || any(greaterThanEqual(neighborCell, gridRes))) continue;
 
         uint hash = uint(neighborCell.x + neighborCell.y * gridRes.x + neighborCell.z * gridRes.x * gridRes.y);
-        uint count = min(cellCounts[hash], MAX_PARTICLES_PER_CELL);
+        uint begin = cellOffsets[hash];
+        uint end = begin + cellCounts[hash];
 
-        for (uint j = 0u; j < count; ++j) {
-            uint neighborIdx = cellParticles[hash * MAX_PARTICLES_PER_CELL + j];
+        for (uint j = begin; j < end; ++j) {
+            uint neighborIdx = sortedParticles[j];
             if (neighborIdx == i) continue;
 
             vec3 pj = positions[neighborIdx].xyz;

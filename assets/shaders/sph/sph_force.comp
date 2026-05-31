@@ -21,20 +21,16 @@ layout(std430, binding = 4) buffer FBuffer {
     mat3 F[]; // deformation gradient
 };
 
-layout(std430, binding = 5) buffer hashBuffer {
-    uint hashCount[];
+layout(std430, binding = 5) buffer CellCountBuffer {
+    uint cellCounts[];
 };
 
-layout(std430, binding = 6) buffer hashBuffer2 {
-    uint hashCount2[];
+layout(std430, binding = 6) readonly buffer CellOffsetBuffer {
+    uint cellOffsets[];
 };
 
-layout(std430, binding = 7) buffer indexBuffer {
-    uint indices[];
-};
-
-layout(std430, binding = 8) buffer offsetBuffer {
-    uint offset[];
+layout(std430, binding = 7) readonly buffer SortedParticleBuffer {
+    uint sortedParticles[];
 };
 
 layout(std430, binding = 9) buffer forceBuffer {
@@ -93,11 +89,11 @@ void main() {
         if (any(lessThan(neighborCell, ivec3(0))) || any(greaterThanEqual(neighborCell, gridRes))) continue;
 
         uint hash = uint(neighborCell.x + neighborCell.y * gridRes.x + neighborCell.z * gridRes.x * gridRes.y);
-        uint start = offset[hash];
-        uint end = start + hashCount[hash];
+        uint start = cellOffsets[hash];
+        uint end = start + cellCounts[hash];
 
         for (uint j = start; j < end; ++j) {
-            uint neighborIdx = indices[j];
+            uint neighborIdx = sortedParticles[j];
             if (neighborIdx == i) continue;
 
             vec3 pj = positions[neighborIdx].xyz;

@@ -1,13 +1,21 @@
 #version 460 core
+
 layout(local_size_x = 64) in;
 
-
-layout(std430, binding = 0) buffer PosBuffer {
+layout(std430, binding = 0) readonly buffer PosBuffer {
     vec4 positions[];
 };
 
-layout(std430, binding = 5) buffer CellCountBuffer {
-    uint cellCounts[];
+layout(std430, binding = 6) readonly buffer CellOffsetBuffer {
+    uint cellOffsets[];
+};
+
+layout(std430, binding = 7) buffer SortedParticleBuffer {
+    uint sortedParticles[];
+};
+
+layout(std430, binding = 8) buffer CellScratchBuffer {
+    uint cellScratch[];
 };
 
 uniform float cellSize;
@@ -15,7 +23,8 @@ uniform ivec3 gridRes;
 uniform vec3 gridOrigin;
 uniform int particleCount;
 
-bool computeCellHash(vec3 pos, out uint hash) {
+bool computeCellHash(vec3 pos, out uint hash)
+{
     ivec3 cell = ivec3(floor((pos - gridOrigin) / cellSize));
 
     if (any(lessThan(cell, ivec3(0))) || any(greaterThanEqual(cell, gridRes))) {
@@ -26,12 +35,14 @@ bool computeCellHash(vec3 pos, out uint hash) {
     return true;
 }
 
-void main() {
+void main()
+{
     uint id = gl_GlobalInvocationID.x;
     if (id >= uint(particleCount)) return;
 
     uint hash;
     if (!computeCellHash(positions[id].xyz, hash)) return;
 
-    atomicAdd(cellCounts[hash], 1u);
+    uint localIndex = atomicAdd(cellScratch[hash], 1u);
+    sortedParticles[cellOffsets[hash] + localIndex] = id;
 }

@@ -81,7 +81,7 @@ namespace FMEditor {
 	};
 
 	struct C_SPH_Grid {
-		static constexpr uint32_t MAX_PARTICLES_PER_CELL = 128;
+		static constexpr uint32_t SCAN_BLOCK_SIZE = 512;
 
 		glm::vec3 c_GridResolution;
 		glm::vec3 c_GridOrigin;
@@ -89,10 +89,14 @@ namespace FMEditor {
 		float c_CellSize;
 		int c_CellCount;
 		int c_ParticleCount;
+		int c_ScanBlockCount;
 
 		std::vector<glm::uint32_t> c_CellCounts;
-		std::vector<glm::uint32_t> c_CellParticles;
-		std::vector<glm::uint32_t> c_CellOverflow;
+		std::vector<glm::uint32_t> c_CellOffsets;
+		std::vector<glm::uint32_t> c_SortedParticles;
+		std::vector<glm::uint32_t> c_CellScratch;
+		std::vector<glm::uint32_t> c_ScanBlockSums;
+		std::vector<glm::uint32_t> c_ScanBlockOffsets;
 		std::vector<glm::vec4> c_Force;
 
 		C_SPH_Grid(glm::vec3 gridRes, float cellSize, int particleCount) :
@@ -101,9 +105,13 @@ namespace FMEditor {
 			c_CellSize(cellSize),
 			c_CellCount(int(gridRes.x* gridRes.y* gridRes.z)),
 			c_ParticleCount(particleCount),
+			c_ScanBlockCount((c_CellCount + SCAN_BLOCK_SIZE - 1) / SCAN_BLOCK_SIZE),
 			c_CellCounts(c_CellCount, 0),
-			c_CellParticles(c_CellCount* MAX_PARTICLES_PER_CELL, 0),
-			c_CellOverflow(1, 0),
+			c_CellOffsets(c_CellCount, 0),
+			c_SortedParticles(particleCount, 0),
+			c_CellScratch(c_CellCount, 0),
+			c_ScanBlockSums(c_ScanBlockCount, 0),
+			c_ScanBlockOffsets(c_ScanBlockCount, 0),
 			c_Force(particleCount, glm::vec4(0.0f)) {
 		}
 	};
