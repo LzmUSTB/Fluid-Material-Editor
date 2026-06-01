@@ -27,6 +27,9 @@ uniform float gridSpacing;
 uniform float deltaTime;
 uniform vec3 gridOrigin;
 uniform int particleCount; 
+uniform int resetDeformationGradient;
+uniform float velocityDamping;
+uniform float maxVelocity;
 
 ivec3 getBoundaryCells(ivec3 gridRes, int gridBoundary)
 {
@@ -89,14 +92,28 @@ void main() {
         newC += 4.0  * mat3(weighted_vel * dpos.x, weighted_vel * dpos.y, weighted_vel * dpos.z); // Outer product
     }
 
+    float damping = max(0.0, 1.0 - velocityDamping * deltaTime);
+    newV *= damping;
+
+    float speed = length(newV);
+    if (speed > maxVelocity) {
+        newV *= maxVelocity / speed;
+    }
+
     velocities[id].xyz = newV;
     affineC[id] = newC;
 
     // Fp
     mat3 identity = mat3(1.0);
     mat3 Fp = F[id];
-    Fp = (identity + deltaTime * newC) * Fp;
-    F[id] = Fp;
+    if (resetDeformationGradient != 0) {
+        affineC[id] = mat3(0.0);
+        F[id] = identity;
+    }
+    else {
+        Fp = (identity + deltaTime * newC) * Fp;
+        F[id] = Fp;
+    }
 
     // fix boundary
     ivec3 boundaryCells = getBoundaryCells(gridRes, gridBoundary);

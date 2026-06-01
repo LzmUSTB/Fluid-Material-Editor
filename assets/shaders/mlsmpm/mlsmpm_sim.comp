@@ -33,6 +33,7 @@ uniform vec3 interactionCenter;
 uniform vec3 interactionDirection;
 uniform float interactionRadius;
 uniform float interactionStrength;
+uniform float interactionResponse;
 
 vec3 computeInteractionAcceleration(vec3 p)
 {
@@ -158,7 +159,7 @@ void main() {
 
         // Right-click fluid interaction
         vec3 nodePos = gridOrigin + (vec3(id) + vec3(0.5)) * gridSpacing;
-        velocity += deltaTime * computeInteractionAcceleration(nodePos);
+        velocity += deltaTime * computeInteractionAcceleration(nodePos) * interactionResponse;
 
         // Handle boundary
         ivec3 boundary = getBoundaryCells(gridRes, gridBoundary);

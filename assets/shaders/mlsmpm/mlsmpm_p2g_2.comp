@@ -34,6 +34,10 @@ uniform int particleCount;
 
 uniform float elastic_mu;
 uniform float elastic_lambda;
+uniform float elasticBlend;
+uniform float elasticStressClamp;
+uniform float cohesion;
+uniform float stressScale;
 
 void main() {
     uint id = gl_GlobalInvocationID.x;
@@ -72,29 +76,43 @@ void main() {
         density += weight * gridStatus[index].w;
     }
 
-    // volume = mass/density
-    float volume = velocities[id].w / density; 
+    float safeDensity = max(density, 1e-6);
+    float safeRestDensity = max(rest_density, 1e-6);
+
+    // Fluid-style volume update. This avoids accumulating volume drift from F.
+    float volume = velocities[id].w / safeDensity; 
 
     // Fp
     mat3 Fp = F[id];
     float J = determinant(Fp);
-    mat3 F_inv_T = inverse(transpose(Fp));
-    mat3 P = elastic_mu * (Fp - F_inv_T) + elastic_lambda * log(J) * F_inv_T;
-    mat3 stressTerm = (1/J) * P * transpose(Fp);
 
     // pressure
-    float pressure = max(-0.1f, stiffness * (pow(density/rest_density,4.) -1));
+    float pressure = max(-max(cohesion, 0.0), stiffness * (pow(safeDensity / safeRestDensity, 4.0) - 1.0));
 
     mat3 stress = mat3(-pressure);
     mat3 strain = Cp + transpose(Cp);
-    float norm = length(vec3(strain[0]) + vec3(strain[1]) + vec3(strain[2]));
+    float norm = sqrt(dot(strain[0], strain[0]) + dot(strain[1], strain[1]) + dot(strain[2], strain[2]));
     float max_strain = 5.0;
     if (norm > max_strain) {
         strain *= max_strain / norm;
     }
     stress += dynamic_viscosity * strain;
 
-    mat3 eq_16_term0 = -volume * 4 * stress * deltaTime;
+    if (elasticBlend > 0.0001 && (elastic_mu > 0.0001 || elastic_lambda > 0.0001) && J > 0.2 && J < 5.0) {
+        mat3 F_inv_T = inverse(transpose(Fp));
+        mat3 P = elastic_mu * (Fp - F_inv_T) + elastic_lambda * log(max(J, 1e-6)) * F_inv_T;
+        mat3 stressTerm = (1.0 / J) * P * transpose(Fp);
+
+        float stressNorm = sqrt(dot(stressTerm[0], stressTerm[0]) + dot(stressTerm[1], stressTerm[1]) + dot(stressTerm[2], stressTerm[2]));
+        float stressLimit = max(elasticStressClamp, 1.0);
+        if (stressNorm > stressLimit) {
+            stressTerm *= stressLimit / stressNorm;
+        }
+
+        stress += elasticBlend * stressTerm;
+    }
+
+    mat3 eq_16_term0 = -volume * 4.0 * inv_dx * inv_dx * stress * deltaTime * stressScale;
 
     // loop neighbor nodes
     for (int i = 0; i < 3; ++i)

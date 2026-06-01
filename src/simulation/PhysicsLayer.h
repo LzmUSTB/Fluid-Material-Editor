@@ -114,6 +114,14 @@ namespace FMEditor {
 
 		float m_Mu;
 		float m_Lambda;
+		float m_ElasticBlend;
+		float m_ElasticStressClamp;
+		float m_Cohesion;
+		float m_VelocityDamping;
+		float m_StressScale;
+		float m_InteractionResponse;
+		float m_MaxVelocity;
+		bool m_ResetDeformationGradient;
 
 		// SPH only
 		float m_NearStiffness;

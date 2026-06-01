@@ -19,6 +19,14 @@ namespace FMEditor {
 		m_CurrentFrameTime(0),
 		m_Mu(0),
 		m_Lambda(0),
+		m_ElasticBlend(0),
+		m_ElasticStressClamp(80.0f),
+		m_Cohesion(0.1f),
+		m_VelocityDamping(0.0f),
+		m_StressScale(0.015f),
+		m_InteractionResponse(1.0f),
+		m_MaxVelocity(20.0f),
+		m_ResetDeformationGradient(false),
 		m_GridBoundary(4),
 		m_Stiffness(10.0f),
 		m_RestDensity(1.0f),
@@ -108,8 +116,16 @@ namespace FMEditor {
 			m_Stiffness = 25.0f;
 			m_RestDensity = 0.9f;
 			m_Viscosity = 0.8f;
-			m_Mu = 2.0f;
-			m_Lambda = 8.0f;
+			m_Mu = 0.0f;
+			m_Lambda = 0.0f;
+			m_ElasticBlend = 0.0f;
+			m_ElasticStressClamp = 30.0f;
+			m_Cohesion = 0.1f;
+			m_VelocityDamping = 0.0f;
+			m_StressScale = 0.015f;
+			m_InteractionResponse = 1.0f;
+			m_MaxVelocity = 20.0f;
+			m_ResetDeformationGradient = true;
 
 			LoadReadources_mlsmpm();
 			m_SimulationMode = 1;
@@ -203,12 +219,53 @@ namespace FMEditor {
 
 		if (m_SimulationMode == 1) {
 			ImGui::Text("MLS-MPM Parameters");
+			if (ImGui::Button("Water")) {
+				m_Stiffness = 25.0f;
+				m_RestDensity = 0.9f;
+				m_Viscosity = 0.8f;
+				m_Mu = 0.0f;
+				m_Lambda = 0.0f;
+				m_ElasticBlend = 0.0f;
+				m_ElasticStressClamp = 30.0f;
+				m_Cohesion = 0.1f;
+				m_VelocityDamping = 0.0f;
+				m_StressScale = 0.015f;
+				m_InteractionResponse = 1.0f;
+				m_MaxVelocity = 20.0f;
+				m_ResetDeformationGradient = true;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Jelly")) {
+				m_Stiffness = 12.0f;
+				m_RestDensity = 1.0f;
+				m_Viscosity = 6.0f;
+				m_Mu = 5.0f;
+				m_Lambda = 14.0f;
+				m_ElasticBlend = 0.30f;
+				m_ElasticStressClamp = 14.0f;
+				m_Cohesion = 7.0f;
+				m_VelocityDamping = 5.0f;
+				m_StressScale = 0.006f;
+				m_InteractionResponse = 0.28f;
+				m_MaxVelocity = 2.8f;
+				m_ResetDeformationGradient = true;
+			}
+			if (ImGui::Button("Set Current Shape As Rest")) {
+				m_ResetDeformationGradient = true;
+			}
 			ImGui::SliderFloat("MPM Stiffness", &m_Stiffness, 0.0f, 50.0f, "%.3f");
 			ImGui::SliderFloat("MPM Rest Density", &m_RestDensity, 0.5f, 2.0f, "%.3f");
 			ImGui::SliderFloat("MPM Viscosity", &m_Viscosity, 0.0f, 5.0f, "%.3f");
 			ImGui::SliderFloat("Elastic Mu", &m_Mu, 0.0f, 100.0f, "%.3f");
 			ImGui::SliderFloat("Elastic Lambda", &m_Lambda, 0.0f, 100.0f, "%.3f");
-			ImGui::SliderInt("Grid Boundary", &m_GridBoundary, 1, 12, "%d");
+			ImGui::SliderFloat("Elastic Blend", &m_ElasticBlend, 0.0f, 1.0f, "%.3f");
+			ImGui::SliderFloat("Elastic Stress Clamp", &m_ElasticStressClamp, 1.0f, 200.0f, "%.3f");
+			ImGui::SliderFloat("Cohesion", &m_Cohesion, 0.0f, 8.0f, "%.3f");
+			ImGui::SliderFloat("Velocity Damping", &m_VelocityDamping, 0.0f, 8.0f, "%.3f");
+			ImGui::SliderFloat("Stress Scale", &m_StressScale, 0.001f, 0.05f, "%.3f");
+			ImGui::SliderFloat("Interaction Response", &m_InteractionResponse, 0.0f, 1.0f, "%.3f");
+			ImGui::SliderFloat("Max Velocity", &m_MaxVelocity, 0.5f, 20.0f, "%.3f");
+			ImGui::SliderInt("Grid Boundary", &m_GridBoundary, 1, 24, "%d");
 		}
 		else if (m_SimulationMode == 2) {
 			ImGui::Text("SPH Parameters");
@@ -518,6 +575,10 @@ namespace FMEditor {
 		m_MLSMPM_P2G_2_Shader->setFloat("dynamic_viscosity", m_Viscosity);
 		m_MLSMPM_P2G_2_Shader->setFloat("elastic_mu", m_Mu);
 		m_MLSMPM_P2G_2_Shader->setFloat("elastic_lambda", m_Lambda);
+		m_MLSMPM_P2G_2_Shader->setFloat("elasticBlend", m_ElasticBlend);
+		m_MLSMPM_P2G_2_Shader->setFloat("elasticStressClamp", m_ElasticStressClamp);
+		m_MLSMPM_P2G_2_Shader->setFloat("cohesion", m_Cohesion);
+		m_MLSMPM_P2G_2_Shader->setFloat("stressScale", m_StressScale);
 		m_MLSMPM_P2G_2_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
 		m_MLSMPM_P2G_2_Shader->Dispatch(64 * 64, 1, 1);
 		m_MLSMPM_P2G_2_Shader->Unbind();
@@ -552,6 +613,7 @@ namespace FMEditor {
 		m_MLSMPM_SIM_Shader->setVec3("interactionDirection", interactionDirection);
 		m_MLSMPM_SIM_Shader->setFloat("interactionRadius", interactionRadius);
 		m_MLSMPM_SIM_Shader->setFloat("interactionStrength", interactionStrength);
+		m_MLSMPM_SIM_Shader->setFloat("interactionResponse", m_InteractionResponse);
 		m_MLSMPM_SIM_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_MLSMPM_SIM_Shader->setInt("gridBoundary", m_GridBoundary);
 		m_MLSMPM_SIM_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
@@ -566,8 +628,12 @@ namespace FMEditor {
 		m_MLSMPM_G2P_Shader->setFloat("gridSpacing", grid.c_GridSpacing);
 		m_MLSMPM_G2P_Shader->setFloat("deltaTime", deltaTime * m_TimeScale);
 		m_MLSMPM_G2P_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
+		m_MLSMPM_G2P_Shader->setFloat("velocityDamping", m_VelocityDamping);
+		m_MLSMPM_G2P_Shader->setFloat("maxVelocity", m_MaxVelocity);
+		m_MLSMPM_G2P_Shader->setInt("resetDeformationGradient", m_ResetDeformationGradient ? 1 : 0);
 		m_MLSMPM_G2P_Shader->Dispatch(64 * 64, 1, 1);
 		m_MLSMPM_G2P_Shader->Unbind();
+		m_ResetDeformationGradient = false;
 	}
 
 	void PhysicsLayer::SphMethod(float deltaTime)
