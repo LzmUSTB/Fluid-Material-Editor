@@ -24,17 +24,44 @@ uniform float fresnelScale;             // 0~1
 
 out vec4 FragColor;
 
-vec3 getViewPos(vec2 uv,float depth) {
-    float x = (uv.x * 2.0 - 1.0);
-    float y = -(uv.y * 2.0 - 1.0);
+float readThickness(vec2 uv) {
+    return texture(thicknessMap, clamp(uv, vec2(0.0), vec2(1.0))).x;
+}
 
-    //float tanHalfFov = tan(fov * 0.5);
-    //float viewX = x * z * tanHalfFov * aspectRatio;
-    //loat viewY = y * z * tanHalfFov;
-    vec4 ndc = vec4(x,y,0,1);
-    ndc.z = -inverse(inv_Projection)[2].z + inverse(inv_Projection)[3].z / depth;
-    vec4 viewPos = inv_Projection * ndc;
-    return viewPos.xyz / viewPos.w; 
+float repairThickness(vec2 uv, vec2 texelSize, float thickness) {
+    if (thickness > 0.006) {
+        return thickness;
+    }
+
+    float maxThickness = thickness;
+    float sum = 0.0;
+    float weightSum = 0.0;
+
+    for (int y = -1; y <= 1; ++y) {
+        for (int x = -1; x <= 1; ++x) {
+            vec2 sampleUv = uv + vec2(x, y) * texelSize;
+            float sampleThickness = readThickness(sampleUv);
+            maxThickness = max(maxThickness, sampleThickness);
+
+            float w = (x == 0 && y == 0) ? 1.0 : 0.5;
+            sum += sampleThickness * w;
+            weightSum += w;
+        }
+    }
+
+    float avgThickness = sum / max(weightSum, 1e-6);
+    return max(thickness, max(avgThickness, maxThickness * 0.35));
+}
+
+vec3 getViewPos(vec2 uv,float depth) {
+    float x = uv.x * 2.0 - 1.0;
+    float y = -(uv.y * 2.0 - 1.0);
+    float tanHalfFov = tan(fov * 0.5);
+    return vec3(
+        x * depth * tanHalfFov * aspectRatio,
+        y * depth * tanHalfFov,
+        -depth
+    );
 }
 
 void main() {
@@ -46,6 +73,22 @@ void main() {
 
     float depth = texture(depthMap, uv).x;
     vec3 normal = texture(normalMap, uv).xyz;
+
+    if (depth <= 1e-5 || depth > 1e6) {
+        FragColor = vec4(bgColor, 1.0);
+        return;
+    }
+
+    if (dot(normal, normal) <= 1e-8) {
+        normal = vec3(0.0, 0.0, 1.0);
+    }
+    else {
+        normal = normalize(normal);
+    }
+
+    thickness = repairThickness(uv, texelSize, thickness);
+    float surfaceCoverage = smoothstep(0.001, 0.014, thickness);
+    float effectiveThickness = max(thickness, 0.012 * surfaceCoverage);
 
     vec3 viewPos = getViewPos(uv, depth);
     vec3 viewDir = normalize(viewPos);
@@ -63,20 +106,27 @@ void main() {
     // refraction
     vec3 refractDir = refract(-viewDir, normal, 0.75);
     vec4 offsetPos = inverse(inv_Projection) * vec4(refractDir,1);
-    vec2 offset = (normal.xy*0.5+0.5) * refractOffsetAmount;
-    vec3 transmittance = exp(-thickness * (1-FluidColor)); 
-    vec3 refractColor = texture(sceneColor, uv+offset).xyz * transmittance;
+    float droplet = smoothstep(0.002, 0.03, effectiveThickness);
+    vec2 offset = normal.xy * refractOffsetAmount * droplet;
+    float absorptionStrength = max(absorption, 0.02);
+    vec3 transmittance = exp(-effectiveThickness * absorptionStrength * 40.0 * (1.0 - FluidColor)); 
+    vec3 refractColor = texture(sceneColor, clamp(uv + offset, vec2(0.0), vec2(1.0))).xyz * transmittance;
 
     // reflection
-    vec3 reflectDir = reflect(-viewDir, normal);
+    vec3 reflectDir = reflect(viewDir, normal);
     vec3 reflectDirWorld = (inv_View * vec4(reflectDir, 0.0)).xyz;
-    vec3 reflectColor = texture(Skybox,reflectDirWorld).xyz;
+    vec3 reflectColor = texture(Skybox, reflectDirWorld).xyz;
 
     // fresnel
-    float fresnel = fresnelScale + (1-fresnelScale) * pow(1.0 - abs(dot(normal, -viewDir)), 5.0);
+    float cosTheta = clamp(dot(normal, -viewDir), 0.0, 1.0);
+    float fresnel = fresnelScale + (1.0 - fresnelScale) * pow(1.0 - cosTheta, 5.0);
+    fresnel = clamp(fresnel, 0.0, 0.55);
 
-    vec3 finalFluidColor = specular + mix(refractColor, reflectColor, clamp(fresnel,0,1));
-    float alpha = 1.0 - exp(-thickness);
+    vec3 reflected = reflectColor * (0.35 + 0.65 * fresnel);
+    vec3 finalFluidColor = specular * 0.65 + mix(refractColor, reflected, fresnel);
+    float alpha = clamp(1.0 - exp(-effectiveThickness * absorptionStrength * 50.0), 0.0, 1.0);
+    alpha = max(alpha, 0.16 * surfaceCoverage);
+    alpha = max(alpha, 0.18 * droplet);
 
     vec3 finalColor = mix(bgColor, finalFluidColor, alpha);
     FragColor = vec4(finalColor,1);

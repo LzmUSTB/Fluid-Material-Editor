@@ -248,10 +248,10 @@ namespace FMEditor {
 		ImGui::Begin("Render Option");
 		ImGui::SliderFloat("particle scale", &m_particleScale, 0.1f, 5.f, "%.3f");
 		ImGui::SliderFloat("particle size", &m_particleSize, 0.0f, 0.05f, "%.3f");
-		ImGui::SliderFloat("absorption", &m_absorption, 0.0f, 1.f, "%.3f");
+		ImGui::SliderFloat("absorption", &m_absorption, 0.02f, 1.f, "%.3f");
 		ImGui::ColorEdit3("fluid color", m_color);
 		ImGui::SliderFloat("refract offset", &m_refractOffset, 0.0f, 1.f, "%.3f");
-		ImGui::SliderFloat("filter threshold", &m_filterThreshold, 0.0f, 1.f, "%.5f");
+			ImGui::SliderFloat("filter threshold", &m_filterThreshold, 0.0f, 0.075f, "%.5f");
 		ImGui::SliderFloat("filter offset", &m_filterOffset, 0.0f, 10.f, "%.3f");
 		ImGui::SliderInt("filter blurSize", &m_blurSize, 0, 50);
 		ImGui::SliderInt("filter iterations", &m_filterIterations, 0, 10);
@@ -476,30 +476,19 @@ namespace FMEditor {
 		m_PingpongFBO_Depth[1]->ClearBuffer();
 
 		for (int i = 0; i < m_filterIterations; i++) {
+			// Depth needs edge-aware smoothing; otherwise silhouettes bleed into the background.
 			m_narrowRangeFilterShader->Bind();
-			// horizontal filter
 			m_narrowRangeFilterShader->setFloat("threshold", m_filterThreshold);
 			m_narrowRangeFilterShader->setFloat("offsetFix", m_filterOffset);
 			m_narrowRangeFilterShader->setInt("blurSize", m_blurSize);
 			m_narrowRangeFilterShader->setBool("Horizontal", true);
-
-			m_PingpongFBO_Thickness[1]->Bind(false);
-			m_PingpongTexture_Thickness[0]->Bind();
-			m_Renderer->DrawQuad();
-			m_PingpongFBO_Thickness[1]->Unbind();
 
 			m_PingpongFBO_Depth[1]->Bind(false);
 			m_PingpongTexture_Depth[0]->Bind();
 			m_Renderer->DrawQuad();
 			m_PingpongFBO_Depth[1]->Unbind();
 
-			// vertical filter
 			m_narrowRangeFilterShader->setBool("Horizontal", false);
-
-			m_PingpongFBO_Thickness[0]->Bind(false);
-			m_PingpongTexture_Thickness[1]->Bind();
-			m_Renderer->DrawQuad();
-			m_PingpongFBO_Thickness[0]->Unbind();
 
 			m_PingpongFBO_Depth[0]->Bind(false);
 			m_PingpongTexture_Depth[1]->Bind();
@@ -508,18 +497,26 @@ namespace FMEditor {
 
 			m_narrowRangeFilterShader->Unbind();
 
-			// fix glitch
-			m_2dFilterShader->Bind();
+			// Thickness is an accumulated optical-density term, so a small Gaussian is more stable.
+			float thicknessBlurSize = std::max(1.0f, float(m_blurSize) * 0.08f);
+
+			m_gaussianFilterShader->Bind();
+			m_gaussianFilterShader->setFloat("blurSize", thicknessBlurSize);
+			m_gaussianFilterShader->setBool("Horizontal", true);
+
 			m_PingpongFBO_Thickness[1]->Bind(false);
 			m_PingpongTexture_Thickness[0]->Bind();
 			m_Renderer->DrawQuad();
 			m_PingpongFBO_Thickness[1]->Unbind();
 
-			m_PingpongFBO_Depth[1]->Bind(false);
-			m_PingpongTexture_Depth[0]->Bind();
+			m_gaussianFilterShader->setBool("Horizontal", false);
+
+			m_PingpongFBO_Thickness[0]->Bind(false);
+			m_PingpongTexture_Thickness[1]->Bind();
 			m_Renderer->DrawQuad();
-			m_PingpongFBO_Depth[1]->Unbind();
-			m_2dFilterShader->Unbind();
+			m_PingpongFBO_Thickness[0]->Unbind();
+
+			m_gaussianFilterShader->Unbind();
 		}
 	}
 

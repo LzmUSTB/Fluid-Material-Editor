@@ -2,6 +2,7 @@
 
 in float viewPosZ;
 in float particleRadius;
+uniform mat4 Projection;
 uniform float Near; 
 uniform float Far;  
 out float fragDepth;
@@ -12,8 +13,10 @@ void main() {
     if (dist > 1.) discard;
     float depth = sqrt(1.0 - dist);
 
-    float offset_z = depth * particleRadius;
-    float current_z = (viewPosZ - offset_z)*2-1;
-    float linearDepth = (2.0*Near*Far)/(Far+Near-current_z*(Far-Near)); 
-    fragDepth = linearDepth;
+    float surfaceViewZ = viewPosZ + depth * particleRadius;
+    vec4 clipPos = Projection * vec4(0.0, 0.0, surfaceViewZ, 1.0);
+    float ndcDepth = clipPos.z / clipPos.w;
+
+    gl_FragDepth = ndcDepth * 0.5 + 0.5;
+    fragDepth = -surfaceViewZ;
 }

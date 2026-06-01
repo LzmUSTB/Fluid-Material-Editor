@@ -13,7 +13,17 @@ namespace FMEditor {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		}
 		else {
-			glTexImage2D(GL_TEXTURE_2D, 0, rgba ? GL_RGBA : GL_R32F, width, height, 0, GL_RGBA, isFloat ? GL_FLOAT : GL_UNSIGNED_BYTE, nullptr);
+			GLenum internalFormat = GL_R32F;
+			GLenum dataFormat = GL_RED;
+			GLenum dataType = GL_FLOAT;
+
+			if (rgba) {
+				internalFormat = isFloat ? GL_RGBA32F : GL_RGBA8;
+				dataFormat = GL_RGBA;
+				dataType = isFloat ? GL_FLOAT : GL_UNSIGNED_BYTE;
+			}
+
+			glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, dataType, nullptr);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
