@@ -476,7 +476,6 @@ namespace FMEditor {
 		m_PingpongFBO_Depth[1]->ClearBuffer();
 
 		for (int i = 0; i < m_filterIterations; i++) {
-			// Depth needs edge-aware smoothing; otherwise silhouettes bleed into the background.
 			m_narrowRangeFilterShader->Bind();
 			m_narrowRangeFilterShader->setFloat("threshold", m_filterThreshold);
 			m_narrowRangeFilterShader->setFloat("offsetFix", m_filterOffset);
@@ -497,7 +496,6 @@ namespace FMEditor {
 
 			m_narrowRangeFilterShader->Unbind();
 
-			// Thickness is an accumulated optical-density term, so a small Gaussian is more stable.
 			float thicknessBlurSize = std::max(1.0f, float(m_blurSize) * 0.08f);
 
 			m_gaussianFilterShader->Bind();

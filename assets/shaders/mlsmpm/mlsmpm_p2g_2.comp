@@ -26,9 +26,9 @@ layout(std430, binding = 4) buffer FBuffer {
 uniform ivec3 gridRes;
 uniform float gridSpacing;
 uniform vec3 gridOrigin;
-uniform float stiffness;            //3.
-uniform float rest_density;         //4.
-uniform float dynamic_viscosity;    //0.1
+uniform float stiffness;    
+uniform float rest_density; 
+uniform float dynamic_viscosity;
 uniform float deltaTime; 
 uniform int particleCount;
 
@@ -79,7 +79,7 @@ void main() {
     float safeDensity = max(density, 1e-6);
     float safeRestDensity = max(rest_density, 1e-6);
 
-    // Fluid-style volume update. This avoids accumulating volume drift from F.
+    // Fluid-style volume update
     float volume = velocities[id].w / safeDensity; 
 
     // Fp

@@ -303,9 +303,7 @@ namespace FMEditor {
 		//m_SPH_Force_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_force.comp");
 		m_SPH_Integrate_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_integrate.comp");
 
-		m_SPH_BucketBuild_Shader = CreateScope<OpenGL_ComputeShader>(
-			"assets/shaders/sph/sph_bucket_build.comp"
-		);
+		m_SPH_BucketBuild_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_bucket_build.comp");
 		m_SPH_ScanBlock_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_scan_block.comp");
 		m_SPH_ScanGroup_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_scan_group.comp");
 		m_SPH_AddScanBlockOffsets_Shader = CreateScope<OpenGL_ComputeShader>("assets/shaders/sph/sph_add_scan_block_offsets.comp");
@@ -333,7 +331,7 @@ namespace FMEditor {
 		int WIDTH = 64;
 		int HEIGHT = 64;
 		float interval = 0.025;
-		float initOffset = 0;
+		float initOffset = 0.5;
 		int particleCount = WIDTH * HEIGHT * LENGTH;
 		auto& particleGroup = m_Registry.emplace<C_ParticleGroup>(m_ParticleEntity, particleCount, 1000.f);
 		unsigned int index = 0;
@@ -643,7 +641,6 @@ namespace FMEditor {
 		int groups = (grid.c_ParticleCount + 63) / 64;
 		float dt = deltaTime;
 
-		// 1. Clear cellCounts on GPU
 		uint32_t zero = 0;
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SPH_CellCountSSBO);
 		glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_R32UI,
@@ -655,7 +652,6 @@ namespace FMEditor {
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		// 2. Count particles in each cell
 		m_SPH_BucketBuild_Shader->Bind();
 		m_SPH_BucketBuild_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_SPH_BucketBuild_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
@@ -665,7 +661,6 @@ namespace FMEditor {
 		m_SPH_BucketBuild_Shader->Unbind();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		// 3. Prefix sum cell counts so each cell owns a compact range in sortedParticles
 		int scanGroups = (grid.c_CellCount + int(C_SPH_Grid::SCAN_BLOCK_SIZE) - 1) / int(C_SPH_Grid::SCAN_BLOCK_SIZE);
 
 		m_SPH_ScanBlock_Shader->Bind();
@@ -686,7 +681,6 @@ namespace FMEditor {
 		m_SPH_AddScanBlockOffsets_Shader->Unbind();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		// 4. Compact particles by cell. This replaces fixed-size per-cell buckets.
 		m_SPH_SortParticles_Shader->Bind();
 		m_SPH_SortParticles_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_SPH_SortParticles_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
@@ -696,7 +690,6 @@ namespace FMEditor {
 		m_SPH_SortParticles_Shader->Unbind();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		// 5. Density
 		m_SPH_Density_Shader->Bind();
 		m_SPH_Density_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_SPH_Density_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
@@ -706,7 +699,6 @@ namespace FMEditor {
 		m_SPH_Density_Shader->Unbind();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		// 6. Force
 		m_SPH_Force_Shader->Bind();
 		m_SPH_Force_Shader->setIVec3("gridRes", grid.c_GridResolution);
 		m_SPH_Force_Shader->setVec3("gridOrigin", grid.c_GridOrigin);
@@ -720,7 +712,6 @@ namespace FMEditor {
 		m_SPH_Force_Shader->Unbind();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		// 7. Integrate
 		int interactionMode = 0;
 		glm::vec3 interactionCenter(0.0f);
 		glm::vec3 interactionDirection(1.0f, 0.0f, 0.0f);

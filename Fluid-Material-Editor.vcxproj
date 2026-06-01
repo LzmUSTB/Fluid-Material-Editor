@@ -663,6 +663,7 @@
     <None Include="assets\shaders\postprocess.vert" />
     <None Include="assets\shaders\skybox.frag" />
     <None Include="assets\shaders\skybox.vert" />
+    <None Include="assets\shaders\sph\sph_add_scan_block_offsets.comp" />
     <None Include="assets\shaders\sph\sph_bucket_build.comp" />
     <None Include="assets\shaders\sph\sph_bucket_density.comp" />
     <None Include="assets\shaders\sph\sph_bucket_force.comp" />
@@ -671,6 +672,9 @@
     <None Include="assets\shaders\sph\sph_grid1.comp" />
     <None Include="assets\shaders\sph\sph_grid2.comp" />
     <None Include="assets\shaders\sph\sph_integrate.comp" />
+    <None Include="assets\shaders\sph\sph_scan_block.comp" />
+    <None Include="assets\shaders\sph\sph_scan_group.comp" />
+    <None Include="assets\shaders\sph\sph_sort_particles.comp" />
     <None Include="assets\shaders\test.comp" />
     <None Include="assets\shaders\test.frag" />
     <None Include="assets\shaders\test.vert" />

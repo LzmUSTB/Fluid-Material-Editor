@@ -1675,6 +1675,18 @@
     <None Include="assets\shaders\sph\sph_bucket_force.comp">
       <Filter>assets\shaders\sph</Filter>
     </None>
+    <None Include="assets\shaders\sph\sph_sort_particles.comp">
+      <Filter>assets\shaders\sph</Filter>
+    </None>
+    <None Include="assets\shaders\sph\sph_scan_group.comp">
+      <Filter>assets\shaders\sph</Filter>
+    </None>
+    <None Include="assets\shaders\sph\sph_scan_block.comp">
+      <Filter>assets\shaders\sph</Filter>
+    </None>
+    <None Include="assets\shaders\sph\sph_add_scan_block_offsets.comp">
+      <Filter>assets\shaders\sph</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\image\fme-interface.png">
